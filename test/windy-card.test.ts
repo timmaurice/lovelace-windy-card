@@ -288,4 +288,51 @@ describe('WindyCard', () => {
       expect((card as unknown as { _config: WindyCardConfig })._config.no_padding).toBe(true);
     });
   });
+
+  describe('Accessibility & Keyboard', () => {
+    it('switches to forecast on ArrowRight', () => {
+      const card = makeCard({ default_mode: 'map' });
+      const handleKeyDown = (
+        card as unknown as { _handleTabKeyDown: (ev: Partial<KeyboardEvent>) => void }
+      )._handleTabKeyDown.bind(card);
+      handleKeyDown({ key: 'ArrowRight', preventDefault: vi.fn() } as unknown as KeyboardEvent);
+      expect((card as unknown as { _mode: string })._mode).toBe('forecast');
+    });
+
+    it('switches back to map on ArrowLeft', () => {
+      const card = makeCard({ default_mode: 'forecast' });
+      const handleKeyDown = (
+        card as unknown as { _handleTabKeyDown: (ev: Partial<KeyboardEvent>) => void }
+      )._handleTabKeyDown.bind(card);
+      handleKeyDown({ key: 'ArrowLeft', preventDefault: vi.fn() } as unknown as KeyboardEvent);
+      expect((card as unknown as { _mode: string })._mode).toBe('map');
+    });
+
+    it('wraps around from forecast to map on ArrowRight', () => {
+      const card = makeCard({ default_mode: 'forecast' });
+      const handleKeyDown = (
+        card as unknown as { _handleTabKeyDown: (ev: Partial<KeyboardEvent>) => void }
+      )._handleTabKeyDown.bind(card);
+      handleKeyDown({ key: 'ArrowRight', preventDefault: vi.fn() } as unknown as KeyboardEvent);
+      expect((card as unknown as { _mode: string })._mode).toBe('map');
+    });
+
+    it('goes to first tab on Home', () => {
+      const card = makeCard({ default_mode: 'forecast' });
+      const handleKeyDown = (
+        card as unknown as { _handleTabKeyDown: (ev: Partial<KeyboardEvent>) => void }
+      )._handleTabKeyDown.bind(card);
+      handleKeyDown({ key: 'Home', preventDefault: vi.fn() } as unknown as KeyboardEvent);
+      expect((card as unknown as { _mode: string })._mode).toBe('map');
+    });
+
+    it('goes to last tab on End', () => {
+      const card = makeCard({ default_mode: 'map' });
+      const handleKeyDown = (
+        card as unknown as { _handleTabKeyDown: (ev: Partial<KeyboardEvent>) => void }
+      )._handleTabKeyDown.bind(card);
+      handleKeyDown({ key: 'End', preventDefault: vi.fn() } as unknown as KeyboardEvent);
+      expect((card as unknown as { _mode: string })._mode).toBe('forecast');
+    });
+  });
 });

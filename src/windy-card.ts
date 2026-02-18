@@ -59,6 +59,38 @@ export class WindyCard extends LitElement implements LovelaceCard {
     return this._config.default_mode === 'forecast_only';
   }
 
+  private _handleTabKeyDown(ev: KeyboardEvent): void {
+    const tabs = ['map', 'forecast'] as ViewMode[];
+    const currentIndex = tabs.indexOf(this._mode);
+
+    if (ev.key === 'ArrowRight') {
+      ev.preventDefault();
+      const nextIndex = (currentIndex + 1) % tabs.length;
+      this._mode = tabs[nextIndex];
+      this._focusTab(this._mode);
+    } else if (ev.key === 'ArrowLeft') {
+      ev.preventDefault();
+      const nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      this._mode = tabs[nextIndex];
+      this._focusTab(this._mode);
+    } else if (ev.key === 'Home') {
+      ev.preventDefault();
+      this._mode = tabs[0];
+      this._focusTab(this._mode);
+    } else if (ev.key === 'End') {
+      ev.preventDefault();
+      this._mode = tabs[tabs.length - 1];
+      this._focusTab(this._mode);
+    }
+  }
+
+  private _focusTab(mode: ViewMode): void {
+    this.updateComplete.then(() => {
+      const tab = this.shadowRoot?.querySelector(`.mode-tab[data-mode="${mode}"]`) as HTMLElement;
+      tab?.focus();
+    });
+  }
+
   /** Resolve map center lat/lon from zone entity or explicit config values */
   private _getLocation(): { lat: number; lon: number } {
     const defaultLat = this.hass?.config?.latitude ?? 51.9503;
@@ -126,10 +158,14 @@ export class WindyCard extends LitElement implements LovelaceCard {
     return html`
       <ha-card .header=${this._config.title}>
         <div class="card-content">
-          <div class="modes" role="tablist">
+          <div class="modes" role="tablist" aria-orientation="horizontal" @keydown=${this._handleTabKeyDown}>
             <button
               role="tab"
               aria-selected=${this._mode === 'map'}
+              aria-controls="map-panel"
+              id="map-tab"
+              tabindex="0"
+              data-mode="map"
               class="mode-tab ${this._mode === 'map' ? 'active' : ''}"
               @click=${() => (this._mode = 'map')}
             >
@@ -138,13 +174,17 @@ export class WindyCard extends LitElement implements LovelaceCard {
             <button
               role="tab"
               aria-selected=${this._mode === 'forecast'}
+              aria-controls="forecast-panel"
+              id="forecast-tab"
+              tabindex="0"
+              data-mode="forecast"
               class="mode-tab ${this._mode === 'forecast' ? 'active' : ''}"
               @click=${() => (this._mode = 'forecast')}
             >
               ${localize(this.hass, 'component.windy-card.card.forecast')}
             </button>
           </div>
-          <div class="content" role="tabpanel">
+          <div class="content" role="tabpanel" id="${this._mode}-panel" aria-labelledby="${this._mode}-tab">
             ${this._mode === 'map' ? this._renderMap() : this._renderForecast()}
           </div>
         </div>

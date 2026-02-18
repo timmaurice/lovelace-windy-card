@@ -9,7 +9,7 @@
 
 A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive weather map and spot forecast directly into your Home Assistant dashboard.
 
-<img src="https://raw.githubusercontent.com/timmaurice/lovelace-windy-card/main/image.png" alt="Card Screenshot" />
+<img src="https://raw.githubusercontent.com/timmaurice/lovelace-windy-card/main/screenshot.png" alt="Card Screenshot" />
 
 ## Features
 
@@ -18,6 +18,8 @@ A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive w
 - **Zone entity support** — point the map at any HA zone automatically
 - **Marker & Spot detail** — pin a specific lat/lon for the marker and spot forecast popup
 - **Conditional editor** — elevation and forecast model selectors only appear for compatible layers; map layers and display options are hidden when in `forecast_only` mode.
+- **Accessibility** — Full keyboard navigation support (arrows, Home, End) for the mode switcher tabs.
+- **Reliability** — Extensive test suite covering card logic, URL generation, and the configuration editor.
 - **Pressure isolines** toggle (disabled automatically for radar/satellite)
 - **Aspect ratio** or fixed pixel height for flexible layout
 - **Fully translated** — English and German

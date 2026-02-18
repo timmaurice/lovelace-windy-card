@@ -1,0 +1,122 @@
+{
+  "common": {
+    "description": "A Lovelace card for Windy Map and Forecast."
+  },
+  "card": {
+    "map": "Map",
+    "forecast": "Forecast"
+  },
+  "editor": {
+    "sections": {
+      "view": "View",
+      "location": "Location",
+      "layer": "Map Layer",
+      "units": "Units",
+      "display": "Display Options"
+    },
+    "labels": {
+      "title": "Title (optional)",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "zone_entity": "Zone entity (overrides lat/lon)",
+      "zoom": "Zoom level (3-11)",
+      "default_mode": "Default Mode",
+      "overlay": "Layer",
+      "level": "Altitude",
+      "product": "Forecast model",
+      "aspect_ratio": "Aspect ratio",
+      "height": "Fixed height (px)",
+      "metric_temp": "Temperature",
+      "metric_rain": "Rain / Snow",
+      "metric_wind": "Wind",
+      "show_marker": "Show marker",
+      "show_spot": "Include spot forecast",
+      "show_pressure": "Pressure isolines",
+      "hide_message": "Hide promotional text",
+      "no_padding": "Remove padding and border (full width)"
+    },
+    "options": {
+      "default_mode": {
+        "map": "Map",
+        "forecast": "Forecast",
+        "map_only": "Map only (no toggle)",
+        "forecast_only": "Forecast only (no toggle)"
+      },
+      "aspect_ratio": {
+        "none": "None (use fixed height)"
+      },
+      "overlay": {
+        "radar": "Weather radar",
+        "satellite": "Satellite",
+        "wind": "Wind",
+        "rain": "Rain, thunder",
+        "temp": "Temperature",
+        "clouds": "Clouds",
+        "waves": "Waves",
+        "raincum": "Rain accumulation",
+        "gusts": "Wind gusts",
+        "windcum": "Wind accumulation",
+        "cat": "Clear air turbulence (CAT)",
+        "icing": "Icing severity",
+        "snow": "New snow",
+        "snowdepth": "Snow depth",
+        "ptype": "Precip. type",
+        "thunder": "Thunderstorms",
+        "dewpoint": "Dew point",
+        "rh": "Humidity",
+        "freezing": "Freezing altitude",
+        "wetbulb": "Wet-bulb temp.",
+        "solarpower": "Solar power",
+        "uv": "UV Index",
+        "hclouds": "High clouds",
+        "mclouds": "Medium clouds",
+        "lclouds": "Low clouds",
+        "fog": "Fog",
+        "cloudtop": "Cloud tops",
+        "cloudbase": "Cloud base",
+        "visibility": "Visibility",
+        "cap": "CAPE Index",
+        "thermals": "Thermals",
+        "swell": "Swell",
+        "swell2": "Swell 2",
+        "swell3": "Swell 3",
+        "wwave": "Wind waves",
+        "sst": "Sea temperature",
+        "currents": "Currents",
+        "tidalcurrents": "Tidal currents",
+        "no2": "NO2",
+        "pm25": "PM2.5",
+        "aerosol": "Aerosol",
+        "ozone": "Ozone layer",
+        "so2": "SO2",
+        "surfaceozone": "Surface Ozone",
+        "co": "CO concentration",
+        "dust": "Dust mass",
+        "pressure": "Pressure",
+        "extreme": "Extreme forecast",
+        "warnings": "Weather warnings",
+        "drought": "Drought monitoring",
+        "fire": "Fire danger"
+      },
+      "metrics": {
+        "default": "Default (Windy setting)"
+      },
+      "levels": {
+        "surface": "Surface (0m / 0ft)",
+        "100m": "100m / 330ft",
+        "950h": "950hPa – 600m / 2000ft",
+        "925h": "925hPa – 750m / 2500ft",
+        "900h": "900hPa – 900m / 3000ft",
+        "850h": "850hPa – 1500m / 5000ft",
+        "800h": "800hPa – 2000m / 6500ft",
+        "700h": "700hPa – 3000m / 10000ft",
+        "600h": "600hPa – 4200m / 14000ft",
+        "500h": "500hPa – 5500m / 18000ft",
+        "400h": "400hPa – 7000m / 23000ft",
+        "300h": "300hPa – 9000m / 30000ft",
+        "200h": "200hPa – 12000m / 39000ft",
+        "150h": "150hPa – 14000m / 46000ft"
+      }
+    }
+  }
+}

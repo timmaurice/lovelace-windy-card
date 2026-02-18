@@ -1,0 +1,4 @@
+{
+  "cSpell.words": ["HACS", "hacsfiles", "hass"],
+  "cSpell.ignorePaths": [".github/**", "node_modules/**", "dist/**"]
+}

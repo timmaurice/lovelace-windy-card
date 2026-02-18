@@ -1,0 +1,122 @@
+{
+  "common": {
+    "description": "Eine Lovelace-Karte für Windy Karte und Vorhersage."
+  },
+  "card": {
+    "map": "Karte",
+    "forecast": "Vorhersage"
+  },
+  "editor": {
+    "sections": {
+      "view": "Ansicht",
+      "location": "Standort",
+      "layer": "Kartenebene",
+      "units": "Einheiten",
+      "display": "Anzeigeoptionen"
+    },
+    "labels": {
+      "title": "Titel (optional)",
+      "latitude": "Breitengrad",
+      "longitude": "Längengrad",
+      "zone_entity": "Zonenentität (überschreibt Lat/Lon)",
+      "zoom": "Zoomstufe (3-11)",
+      "default_mode": "Standard-Modus",
+      "overlay": "Ebene",
+      "level": "Höhe",
+      "product": "Vorhersagemodell",
+      "aspect_ratio": "Seitenverhältnis",
+      "height": "Feste Höhe (px)",
+      "metric_temp": "Temperatur",
+      "metric_rain": "Regen / Schnee",
+      "metric_wind": "Wind",
+      "show_marker": "Marker anzeigen",
+      "show_spot": "Spot-Vorhersage einbeziehen",
+      "show_pressure": "Isobaren anzeigen",
+      "hide_message": "Werbung ausblenden",
+      "no_padding": "Padding und Rahmen entfernen (volle Breite)"
+    },
+    "options": {
+      "default_mode": {
+        "map": "Karte",
+        "forecast": "Vorhersage",
+        "map_only": "Nur Karte (ohne Umschalter)",
+        "forecast_only": "Nur Vorhersage (ohne Umschalter)"
+      },
+      "aspect_ratio": {
+        "none": "Kein (feste Höhe verwenden)"
+      },
+      "overlay": {
+        "radar": "Wetterradar",
+        "satellite": "Satellit",
+        "wind": "Wind",
+        "rain": "Regen, Gewitter",
+        "temp": "Temperatur",
+        "clouds": "Wolken",
+        "waves": "Wellen",
+        "raincum": "Regenakkumulation",
+        "gusts": "Windböen",
+        "windcum": "Windakkumulation",
+        "cat": "Clear Air Turbulence (CAT)",
+        "icing": "Vereisungsgefahr",
+        "snow": "Neuschnee",
+        "snowdepth": "Schneehöhe",
+        "ptype": "Niederschlagsart",
+        "thunder": "Gewitter",
+        "dewpoint": "Taupunkt",
+        "rh": "Luftfeuchtigkeit",
+        "freezing": "Nullgradgrenze",
+        "wetbulb": "Feuchtkugeltemperatur",
+        "solarpower": "Solarenergie",
+        "uv": "UV-Index",
+        "hclouds": "Hohe Wolken",
+        "mclouds": "Mittelhohe Wolken",
+        "lclouds": "Tiefe Wolken",
+        "fog": "Nebel",
+        "cloudtop": "Wolkengrenze",
+        "cloudbase": "Wolkenuntergrenze",
+        "visibility": "Sichtweite",
+        "cap": "CAPE-Index",
+        "thermals": "Thermik",
+        "swell": "Dünung",
+        "swell2": "Dünung 2",
+        "swell3": "Dünung 3",
+        "wwave": "Windwellen",
+        "sst": "Meerestemperatur",
+        "currents": "Strömungen",
+        "tidalcurrents": "Gezeitenströmungen",
+        "no2": "NO2",
+        "pm25": "Feinstaub PM2.5",
+        "aerosol": "Aerosol",
+        "ozone": "Ozonschicht",
+        "so2": "SO2",
+        "surfaceozone": "Bodennahes Ozon",
+        "co": "CO-Konzentration",
+        "dust": "Staubmasse",
+        "pressure": "Luftdruck",
+        "extreme": "Extreme Vorhersage",
+        "warnings": "Wetterwarnungen",
+        "drought": "Trockenheitsmonitor",
+        "fire": "Feuergefahr"
+      },
+      "metrics": {
+        "default": "Standard (Windy-Einstellung)"
+      },
+      "levels": {
+        "surface": "Boden (0m / 0ft)",
+        "100m": "100m / 330ft",
+        "950h": "950hPa – 600m / 2000ft",
+        "925h": "925hPa – 750m / 2500ft",
+        "900h": "900hPa – 900m / 3000ft",
+        "850h": "850hPa – 1500m / 5000ft",
+        "800h": "800hPa – 2000m / 6500ft",
+        "700h": "700hPa – 3000m / 10000ft",
+        "600h": "600hPa – 4200m / 14000ft",
+        "500h": "500hPa – 5500m / 18000ft",
+        "400h": "400hPa – 7000m / 23000ft",
+        "300h": "300hPa – 9000m / 30000ft",
+        "200h": "200hPa – 12000m / 39000ft",
+        "150h": "150hPa – 14000m / 46000ft"
+      }
+    }
+  }
+}

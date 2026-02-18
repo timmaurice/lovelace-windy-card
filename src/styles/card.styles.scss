@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+.modes {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  justify-content: center;
+  border-bottom: 1px solid var(--divider-color, #e8e8e8);
+  padding-bottom: 0;
+}
+
+.mode-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--secondary-text-color);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.mode-tab:hover {
+  color: var(--primary-text-color);
+  background-color: rgba(var(--rgb-primary-color, 33, 150, 243), 0.05);
+}
+
+.mode-tab.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.content {
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--ha-card-border-radius, 12px);
+}
+
+ha-card.no-padding {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+ha-card.no-padding .card-content {
+  padding: 0 !important;
+}
+
+iframe {
+  border: none;
+  display: block;
+  background: var(--card-background-color);
+}

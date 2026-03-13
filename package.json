@@ -1,6 +1,6 @@
 {
   "name": "windy-card",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Lovelace card for Windy Map and Forecast.",
   "homepage": "https://github.com/timmaurice/lovelace-windy-card#readme",
   "bugs": {
@@ -41,7 +41,7 @@
     "sass": "^1.98.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.0"
   },
   "dependencies": {
     "tslib": "^2.8.1"

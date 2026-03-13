@@ -74,7 +74,7 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 | Name          | Type   | Default     | Description                                             |
 | ------------- | ------ | ----------- | ------------------------------------------------------- |
-| `zone_entity` | string | —           | HA zone entity to use as map center (overrides lat/lon) |
+| `location`    | string | —           | HA zone or device_tracker entity to use as map center (overrides lat/lon) |
 | `latitude`    | number | HA location | Map center latitude                                     |
 | `longitude`   | number | HA location | Map center longitude                                    |
 
@@ -156,7 +156,7 @@ zoom: 8
 ```yaml
 type: custom:windy-card
 title: Home Area
-zone_entity: zone.home
+location: zone.home
 overlay: rain
 zoom: 6
 aspect_ratio: '4:3'

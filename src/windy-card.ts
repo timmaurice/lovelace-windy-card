@@ -19,8 +19,13 @@ export class WindyCard extends LitElement implements LovelaceCard {
     if (!config) {
       throw new Error('Invalid configuration');
     }
-    this._config = config;
-    // map_only and forecast_only lock the view; map/forecast set the default
+    const newConfig = { ...config };
+    if (newConfig.zone_entity && !newConfig.location) {
+      newConfig.location = newConfig.zone_entity;
+    }
+    delete newConfig.zone_entity;
+
+    this._config = newConfig;
     if (config.default_mode === 'forecast' || config.default_mode === 'forecast_only') {
       this._mode = 'forecast';
     } else {
@@ -96,8 +101,8 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const defaultLat = this.hass?.config?.latitude ?? 51.9503;
     const defaultLon = this.hass?.config?.longitude ?? 7.9855;
 
-    if (this._config.zone_entity && this.hass?.states) {
-      const zoneState = this.hass.states[this._config.zone_entity];
+    if (this._config.location && this.hass?.states) {
+      const zoneState = this.hass.states[this._config.location];
       if (zoneState) {
         const lat = zoneState.attributes['latitude'] as number | undefined;
         const lon = zoneState.attributes['longitude'] as number | undefined;

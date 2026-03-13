@@ -183,7 +183,7 @@ describe('WindyCard', () => {
       expect(src).toContain('lon=11');
     });
 
-    it('uses zone entity location when zone_entity is set', () => {
+    it('uses location when location is set', () => {
       const card = new WindyCard();
       const hassWithZone = {
         ...mockHass,
@@ -194,14 +194,14 @@ describe('WindyCard', () => {
         },
       };
       card.hass = hassWithZone as unknown as typeof card.hass;
-      card.setConfig({ type: 'custom:windy-card', overlay: 'wind', zone_entity: 'zone.home' });
+      card.setConfig({ type: 'custom:windy-card', overlay: 'wind', location: 'zone.home' });
       const src = getIframeSrc(card);
       expect(src).toContain('lat=53');
       expect(src).toContain('lon=9');
     });
 
     it('falls back to lat/lon when zone entity is missing from states', () => {
-      const card = makeCard({ overlay: 'wind', zone_entity: 'zone.nonexistent', latitude: 51.0, longitude: 7.0 });
+      const card = makeCard({ overlay: 'wind', location: 'zone.nonexistent', latitude: 51.0, longitude: 7.0 });
       const src = getIframeSrc(card);
       expect(src).toContain('lat=51');
       expect(src).toContain('lon=7');

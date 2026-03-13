@@ -71,7 +71,9 @@ export interface WindyCardConfig extends LovelaceCardConfig {
   default_mode?: 'map' | 'forecast' | 'map_only' | 'forecast_only';
   latitude?: number;
   longitude?: number;
+  /** @deprecated use location instead */
   zone_entity?: string;
+  location?: string;
   zoom?: number;
   overlay?: string;
   level?: string;

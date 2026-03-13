@@ -11,7 +11,12 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   @state() private _config!: WindyCardConfig;
 
   public setConfig(config: WindyCardConfig): void {
-    this._config = config;
+    const newConfig = { ...config };
+    if (newConfig.zone_entity && !newConfig.location) {
+      newConfig.location = newConfig.zone_entity;
+    }
+    delete newConfig.zone_entity;
+    this._config = newConfig;
   }
 
   private _getSchema() {
@@ -109,8 +114,8 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
         title: localize(this.hass, 'component.windy-card.editor.sections.location'),
         schema: [
           {
-            name: 'zone_entity',
-            selector: { entity: { domain: 'zone' } },
+            name: 'location',
+            selector: { entity: { domain: ['zone', 'device_tracker'] } },
           },
           {
             name: '',

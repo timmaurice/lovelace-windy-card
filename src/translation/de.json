@@ -18,7 +18,7 @@
       "title": "Titel (optional)",
       "latitude": "Breitengrad",
       "longitude": "Längengrad",
-      "zone_entity": "Zonenentität (überschreibt Lat/Lon)",
+      "location": "Standortentität (Zone oder Device Tracker, überschreibt Lat/Lon)",
       "zoom": "Zoomstufe (3-11)",
       "default_mode": "Standard-Modus",
       "overlay": "Ebene",

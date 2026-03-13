@@ -18,7 +18,7 @@
       "title": "Title (optional)",
       "latitude": "Latitude",
       "longitude": "Longitude",
-      "zone_entity": "Zone entity (overrides lat/lon)",
+      "location": "Location entity (Zone or Device Tracker, overrides lat/lon)",
       "zoom": "Zoom level (3-11)",
       "default_mode": "Default Mode",
       "overlay": "Layer",

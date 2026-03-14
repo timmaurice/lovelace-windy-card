@@ -138,6 +138,10 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
               title: localize(this.hass, 'component.windy-card.editor.sections.layer'),
               schema: [
                 {
+                  name: 'overlay_entity',
+                  selector: { entity: {} },
+                },
+                {
                   name: 'overlay',
                   selector: {
                     select: {

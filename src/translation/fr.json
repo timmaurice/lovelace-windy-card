@@ -1,0 +1,123 @@
+{
+  "common": {
+    "description": "Une carte Lovelace pour la carte et les prévisions Windy."
+  },
+  "card": {
+    "map": "Carte",
+    "forecast": "Prévisions"
+  },
+  "editor": {
+    "sections": {
+      "view": "Vue",
+      "location": "Localisation",
+      "layer": "Couche de carte",
+      "units": "Unités",
+      "display": "Options d'affichage"
+    },
+    "labels": {
+      "title": "Titre (optionnel)",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "location": "Entité de localisation (Zone ou Suivi d'appareil, remplace lat/lon)",
+      "zoom": "Niveau de zoom (3-11)",
+      "default_mode": "Mode par défaut",
+      "overlay_entity": "Entité de couche (l'état est utilisé comme couche, remplace la liste déroulante)",
+      "overlay": "Couche (par défaut)",
+      "level": "Altitude",
+      "product": "Modèle de prévision",
+      "aspect_ratio": "Format d'image",
+      "height": "Hauteur fixe (px)",
+      "metric_temp": "Température",
+      "metric_rain": "Pluie / Neige",
+      "metric_wind": "Vent",
+      "show_marker": "Afficher le marqueur",
+      "show_spot": "Inclure les prévisions locales",
+      "show_pressure": "Isobares",
+      "hide_message": "Masquer le texte promotionnel",
+      "no_padding": "Supprimer le rembourrage et la bordure (pleine largeur)"
+    },
+    "options": {
+      "default_mode": {
+        "map": "Carte",
+        "forecast": "Prévisions",
+        "map_only": "Carte uniquement (sans bascule)",
+        "forecast_only": "Prévisions uniquement (sans bascule)"
+      },
+      "aspect_ratio": {
+        "none": "Aucun (utiliser la hauteur fixe)"
+      },
+      "overlay": {
+        "radar": "Radar météo",
+        "satellite": "Satellite",
+        "wind": "Vent",
+        "rain": "Pluie, tonnerre",
+        "temp": "Température",
+        "clouds": "Nuages",
+        "waves": "Vagues",
+        "raincum": "Accumulation de pluie",
+        "gusts": "Rafales de vent",
+        "windcum": "Accumulation de vent",
+        "cat": "Turbulences en air clair (CAT)",
+        "icing": "Risque de givrage",
+        "snow": "Neige fraîche",
+        "snowdepth": "Épaisseur de neige",
+        "ptype": "Type de précipitations",
+        "thunder": "Orages",
+        "dewpoint": "Point de rosée",
+        "rh": "Humidité",
+        "freezing": "Altitude de gel",
+        "wetbulb": "Température au thermomètre mouillé",
+        "solarpower": "Énergie solaire",
+        "uv": "Indice UV",
+        "hclouds": "Nuages élevés",
+        "mclouds": "Nuages moyens",
+        "lclouds": "Nuages bas",
+        "fog": "Brouillard",
+        "cloudtop": "Sommet des nuages",
+        "cloudbase": "Base des nuages",
+        "visibility": "Visibilité",
+        "cap": "Indice CAPE",
+        "thermals": "Thermiques",
+        "swell": "Houle",
+        "swell2": "Houle 2",
+        "swell3": "Houle 3",
+        "wwave": "Vagues de vent",
+        "sst": "Température de la mer",
+        "currents": "Courants",
+        "tidalcurrents": "Courants de marée",
+        "no2": "NO2",
+        "pm25": "PM2.5",
+        "aerosol": "Aérosol",
+        "ozone": "Couche d'ozone",
+        "so2": "SO2",
+        "surfaceozone": "Ozone de surface",
+        "co": "Concentration de CO",
+        "dust": "Masse de poussière",
+        "pressure": "Pression",
+        "extreme": "Prévisions extrêmes",
+        "warnings": "Alertes météo",
+        "drought": "Surveillance de la sécheresse",
+        "fire": "Risque d'incendie"
+      },
+      "metrics": {
+        "default": "Par défaut (réglage Windy)"
+      },
+      "levels": {
+        "surface": "Surface (0m / 0ft)",
+        "100m": "100m / 330ft",
+        "950h": "950hPa – 600m / 2000ft",
+        "925h": "925hPa – 750m / 2500ft",
+        "900h": "900hPa – 900m / 3000ft",
+        "850h": "850hPa – 1500m / 5000ft",
+        "800h": "800hPa – 2000m / 6500ft",
+        "700h": "700hPa – 3000m / 10000ft",
+        "600h": "600hPa – 4200m / 14000ft",
+        "500h": "500hPa – 5500m / 18000ft",
+        "400h": "400hPa – 7000m / 23000ft",
+        "300h": "300hPa – 9000m / 30000ft",
+        "200h": "200hPa – 12000m / 39000ft",
+        "150h": "150hPa – 14000m / 46000ft"
+      }
+    }
+  }
+}

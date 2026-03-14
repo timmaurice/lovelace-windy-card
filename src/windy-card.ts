@@ -96,6 +96,17 @@ export class WindyCard extends LitElement implements LovelaceCard {
     });
   }
 
+  /** Resolve overlay from entity state or explicit config value */
+  private _getOverlay(): string {
+    if (this._config.overlay_entity && this.hass?.states) {
+      const entityState = this.hass.states[this._config.overlay_entity];
+      if (entityState?.state) {
+        return entityState.state;
+      }
+    }
+    return this._config.overlay ?? 'wind';
+  }
+
   /** Resolve map center lat/lon from zone entity or explicit config values */
   private _getLocation(): { lat: number; lon: number } {
     const defaultLat = this.hass?.config?.latitude ?? 51.9503;
@@ -205,7 +216,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
     if (zoom < 3) zoom = 3;
     if (zoom > 11) zoom = 11;
 
-    const overlay = this._config.overlay ?? 'wind';
+    const overlay = this._getOverlay();
     const isRadarOrSatellite = ['radar', 'satellite'].includes(overlay);
     const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'cat', 'icing', 'cap'].includes(overlay);
 

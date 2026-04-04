@@ -25,7 +25,7 @@ describe('localize()', () => {
   });
 
   it('falls back to English for an unknown language', () => {
-    const result = localize(mockHass('fr'), 'component.windy-card.card.map');
+    const result = localize(mockHass('es'), 'component.windy-card.card.map');
     expect(result).toBe('Map');
   });
 
@@ -47,7 +47,7 @@ describe('localize()', () => {
 
   it('returns German editor label for overlay', () => {
     const result = localize(mockHass('de'), 'component.windy-card.editor.labels.overlay');
-    expect(result).toBe('Ebene');
+    expect(result).toBe('Ebene (Standard)');
   });
 
   it('returns English level label with altitude info', () => {

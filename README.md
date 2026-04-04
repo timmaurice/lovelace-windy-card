@@ -22,11 +22,12 @@ A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive w
 - **Reliability** — Extensive test suite covering card logic, URL generation, and the configuration editor.
 - **Pressure isolines** toggle (disabled automatically for radar/satellite)
 - **Aspect ratio** or fixed pixel height for flexible layout
-- **Fully translated** — English and German
+- **Fully translated** — English, French, and German
 
 ## Languages
 
 - English
+- French
 - German
 
 <details>
@@ -80,12 +81,13 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 ### Map Layer
 
-| Name      | Type   | Default   | Description                                 |
-| --------- | ------ | --------- | ------------------------------------------- |
-| `overlay` | string | `wind`    | Weather layer (see full list below)         |
-| `level`   | string | `surface` | Altitude level (only for compatible layers) |
-| `product` | string | `ecmwf`   | Forecast model (hidden for radar/satellite) |
-| `zoom`    | number | `5`       | Zoom level (3–11)                           |
+| Name             | Type   | Default   | Description                                                            |
+| ---------------- | ------ | --------- | ---------------------------------------------------------------------- |
+| `overlay_entity` | string | —         | HA entity whose state is used as the map overlay (overrides `overlay`) |
+| `overlay`        | string | `wind`    | Weather layer (see full list below)                                    |
+| `level`          | string | `surface` | Altitude level (only for compatible layers)                            |
+| `product`        | string | `ecmwf`   | Forecast model (hidden for radar/satellite)                            |
+| `zoom`           | number | `5`       | Zoom level (3–11)                                                      |
 
 ### View / Size
 

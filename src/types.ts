@@ -76,6 +76,7 @@ export interface WindyCardConfig extends LovelaceCardConfig {
   location?: string;
   zoom?: number;
   overlay?: string;
+  overlay_entity?: string;
   level?: string;
   product?: string;
   metric_temp?: 'default' | '°C' | '°F';

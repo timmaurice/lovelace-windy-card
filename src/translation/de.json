@@ -4,7 +4,8 @@
   },
   "card": {
     "map": "Karte",
-    "forecast": "Vorhersage"
+    "forecast": "Vorhersage",
+    "reset_map": "Karte zurücksetzen"
   },
   "editor": {
     "sections": {

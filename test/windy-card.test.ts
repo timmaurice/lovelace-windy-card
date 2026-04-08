@@ -256,6 +256,48 @@ describe('WindyCard', () => {
     });
   });
 
+  describe('render wrappers', () => {
+    it('adds a reset button for the map view', () => {
+      const card = makeCard({ overlay: 'wind' });
+      // We can inspect the strings of the lit HtmlTemplate since it contains the static DOM
+      const rendered = (
+        card as unknown as { _renderMap: () => { strings: TemplateStringsArray; values: unknown[] } }
+      )._renderMap();
+
+      // Depending on whether _renderMap returns a wrapper (due to aspect ratio or height)
+      // the string will vary, but both wrapper versions now use the reset button logic
+      // In this case, `values` contains the resetButton html piece which we need to check inside
+
+      const values = rendered.values;
+      const hasResetButtonValue = values.some((val) => {
+        // Evaluate if one of the sub-templates has a reset-button
+        if (val && typeof val === 'object' && 'strings' in val) {
+          return (val as { strings: TemplateStringsArray }).strings.join(' ').includes('class="reset-button"');
+        }
+        return false;
+      });
+
+      expect(hasResetButtonValue).toBe(true);
+    });
+
+    it('does not add a reset button for the forecast view', () => {
+      const card = makeCard({ overlay: 'wind' });
+      const rendered = (
+        card as unknown as { _renderForecast: () => { strings: TemplateStringsArray; values: unknown[] } }
+      )._renderForecast();
+
+      const values = rendered.values;
+      const hasResetButtonValue = values.some((val) => {
+        if (val && typeof val === 'object' && 'strings' in val) {
+          return (val as { strings: TemplateStringsArray }).strings.join(' ').includes('class="reset-button"');
+        }
+        return false;
+      });
+
+      expect(hasResetButtonValue).toBe(false);
+    });
+  });
+
   describe('customCards registration', () => {
     it('registers the card in window.customCards', () => {
       expect(window.customCards.some((c) => c.type === 'windy-card')).toBe(true);

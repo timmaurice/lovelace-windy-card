@@ -131,6 +131,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
   /** Convert aspect_ratio string like "16:9" to a CSS padding-bottom percentage */
   private _getRatioPadding(): string | null {
+    if (this._isForecastOnly) return null;
     const ratio = this._config.aspect_ratio;
     if (!ratio) return null;
     const parts = ratio.split(':');
@@ -146,7 +147,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
       return html``;
     }
 
-    const noPadding = (this._isMapOnly || this._isForecastOnly) && this._config.no_padding;
+    const noPadding = this._config.no_padding;
 
     // map_only: render only the map, no toggle
     if (this._isMapOnly) {
@@ -172,7 +173,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
     // map + forecast with toggle
     return html`
-      <ha-card .header=${this._config.title}>
+      <ha-card .header=${this._config.title} class=${noPadding ? 'no-padding' : ''}>
         <div class="card-content">
           <div class="modes" role="tablist" aria-orientation="horizontal" @keydown=${this._handleTabKeyDown}>
             <button
@@ -208,6 +209,70 @@ export class WindyCard extends LitElement implements LovelaceCard {
     `;
   }
 
+  private _resetMap(e: Event) {
+    if (e.currentTarget) {
+      const container = (e.currentTarget as HTMLElement).closest('.iframe-container');
+      const iframe = container?.querySelector('iframe');
+      if (iframe) {
+        // Force reload original iframe source
+        const currentSrc = iframe.src;
+        iframe.src = 'about:blank';
+        setTimeout(() => {
+          iframe.src = currentSrc;
+        }, 10);
+      }
+    }
+  }
+
+  private _renderIframeWithWrapper(
+    url: string,
+    defaultHeight: number,
+    title: string,
+    showResetButton: boolean = false,
+  ) {
+    const ratioPadding = this._getRatioPadding();
+    const height = this._config.height;
+
+    const resetButton = showResetButton
+      ? html`<button
+          class="reset-button"
+          @click=${this._resetMap}
+          title="${localize(this.hass, 'component.windy-card.card.reset_map') ?? 'Reset Map'}"
+        >
+          <ha-icon icon="mdi:crosshairs-gps"></ha-icon>
+        </button>`
+      : '';
+
+    if (ratioPadding && !height) {
+      return html`
+        <div
+          class="iframe-container ratio-wrapper"
+          style="padding-bottom: ${ratioPadding}; position: relative; width: 100%; height: 0;"
+        >
+          <iframe
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+            src="${url}"
+            title="${title}"
+          ></iframe>
+          ${resetButton}
+        </div>
+      `;
+    }
+
+    return html`
+      <div class="iframe-container" style="position: relative; width: 100%;">
+        <iframe
+          width="100%"
+          height="${height ?? defaultHeight}"
+          src="${url}"
+          title="${title}"
+          style="border: none; display: block;"
+        ></iframe>
+        ${resetButton}
+      </div>
+    `;
+  }
+
   private _renderMap() {
     const { lat, lon } = this._getLocation();
 
@@ -236,24 +301,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
     const url = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}&product=${product}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}`;
 
-    const ratioPadding = this._getRatioPadding();
-    const height = this._config.height;
-
-    if (ratioPadding && !height) {
-      return html`
-        <div class="ratio-wrapper" style="padding-bottom: ${ratioPadding}; position: relative; width: 100%;">
-          <iframe
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
-            src="${url}"
-            title="Windy Map"
-          ></iframe>
-        </div>
-      `;
-    }
-
-    return html`
-      <iframe width="100%" height="${height ?? 450}" src="${url}" title="Windy Map" style="border: none;"></iframe>
-    `;
+    return this._renderIframeWithWrapper(url, 450, 'Windy Map', true);
   }
 
   private _renderForecast() {
@@ -264,9 +312,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
     const url = `https://embed.windy.com/embed.html?type=forecast&location=coordinates&detail=true&detailLat=${lat}&detailLon=${lon}&metricTemp=${metricTemp}&metricRain=${metricRain}&metricWind=${metricWind}`;
 
-    return html`
-      <iframe width="100%" height="220" src="${url}" title="Windy Forecast" style="border: none;"></iframe>
-    `;
+    return this._renderIframeWithWrapper(url, 185, 'Windy Forecast', false);
   }
 
   static styles = unsafeCSS(cardStyles);

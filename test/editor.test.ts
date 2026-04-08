@@ -58,11 +58,11 @@ describe('WindyCardEditor', () => {
       expect(flatSchema.some((s) => s.name === 'no_padding')).toBe(true);
     });
 
-    it('hides no_padding when in a toggleable mode (map)', () => {
+    it('shows no_padding when in a toggleable mode (map)', () => {
       const editor = makeEditor({ default_mode: 'map' });
       const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
       const flatSchema = flattenSchema(schema);
-      expect(flatSchema.some((s) => s.name === 'no_padding')).toBe(false);
+      expect(flatSchema.some((s) => s.name === 'no_padding')).toBe(true);
     });
   });
 });

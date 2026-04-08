@@ -22,26 +22,26 @@
   font-weight: 500;
   color: var(--secondary-text-color);
   transition: all 0.2s ease;
-}
 
-.mode-tab:focus {
-  outline: none;
-}
+  &:focus {
+    outline: none;
+  }
 
-.mode-tab:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: -2px;
-  border-radius: 4px;
-}
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+    border-radius: 4px;
+  }
 
-.mode-tab:hover {
-  color: var(--primary-text-color);
-  background-color: rgba(var(--rgb-primary-color, 33, 150, 243), 0.05);
-}
+  &:hover {
+    color: var(--primary-text-color);
+    background-color: rgba(var(--rgb-primary-color, 33, 150, 243), 0.05);
+  }
 
-.mode-tab.active {
-  color: var(--primary-color);
-  border-bottom-color: var(--primary-color);
+  &.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+  }
 }
 
 .content {
@@ -54,14 +54,71 @@ ha-card.no-padding {
   background: none !important;
   border: none !important;
   box-shadow: none !important;
-}
 
-ha-card.no-padding .card-content {
-  padding: 0 !important;
+  .card-content {
+    padding: 0 !important;
+  }
 }
 
 iframe {
   border: none;
   display: block;
   background: var(--card-background-color);
+}
+
+.iframe-container {
+  position: relative;
+  width: 100%;
+
+  .reset-button {
+    position: absolute;
+    top: 13px;
+    left: 13px;
+    background-color: var(--card-background-color, #ffffff);
+    color: var(--primary-text-color, #000000);
+    border: 1px solid var(--divider-color, #e8e8e8);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      background-color 0.2s ease,
+      transform 0.1s ease,
+      opacity 0.2s ease;
+
+    &:hover {
+      background-color: var(--secondary-background-color, #f0f0f0);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    &:focus {
+      outline: none;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+
+    ha-icon {
+      --mdc-icon-size: 15px;
+    }
+  }
+
+  &:hover .reset-button {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }

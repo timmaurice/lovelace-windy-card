@@ -24,8 +24,6 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
     const isRadarOrSatellite = ['radar', 'satellite'].includes(overlay);
     const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'cat', 'icing', 'cap'].includes(overlay);
     const isForecastOnly = this._config.default_mode === 'forecast_only';
-    const isMapOnly = this._config.default_mode === 'map_only';
-    const isLockedMode = isForecastOnly || isMapOnly;
 
     const schema: HaFormSchema[] = [
       // ── Section: View ──────────────────────────────────────────────
@@ -103,7 +101,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                 } as HaFormSchema,
               ]
             : []),
-          ...(isLockedMode ? [{ name: 'no_padding', selector: { boolean: {} } } as HaFormSchema] : []),
+          { name: 'no_padding', selector: { boolean: {} } },
         ],
       },
 

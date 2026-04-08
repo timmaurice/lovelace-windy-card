@@ -14,6 +14,7 @@ A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive w
 ## Features
 
 - **Interactive Windy Map** with 50+ weather layers (wind, rain, temperature, radar, satellite, air quality, and more)
+- **Map Reset Button** to quickly re-center and reset zoom without reloading the dashboard
 - **Spot Forecast** view for a detailed point forecast at any location
 - **Zone entity support** — point the map at any HA zone automatically
 - **Marker & Spot detail** — pin a specific lat/lon for the marker and spot forecast popup
@@ -21,7 +22,7 @@ A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive w
 - **Accessibility** — Full keyboard navigation support (arrows, Home, End) for the mode switcher tabs.
 - **Reliability** — Extensive test suite covering card logic, URL generation, and the configuration editor.
 - **Pressure isolines** toggle (disabled automatically for radar/satellite)
-- **Aspect ratio** or fixed pixel height for flexible layout
+- **Aspect ratio** or fixed pixel height for flexible layout. Maintains map and forecast dimensions seamlessly without layout shifts.
 - **Fully translated** — English, French, and German
 
 ## Languages
@@ -95,7 +96,7 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 | -------------- | ------- | ------- | ---------------------------------------------------------------------------------------- |
 | `aspect_ratio` | string  | `16:9`  | Responsive ratio (`16:9`, `4:3`, `3:2`, `1:1`, `2:1`). Set to empty to use fixed height. |
 | `height`       | number  | `450`   | Fixed height in px (used when aspect_ratio is empty)                                     |
-| `no_padding`   | boolean | `false` | Remove padding and border from `ha-card` (only for `map_only` or `forecast_only`)        |
+| `no_padding`   | boolean | `false` | Remove padding and border from `ha-card` (applies to all modes)                          |
 
 ### Units
 

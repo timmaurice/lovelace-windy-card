@@ -176,29 +176,32 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.waves'),
                         },
                         {
-                          value: 'raincum',
+                          value: 'rainAccu',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.raincum'),
                         },
                         {
-                          value: 'gusts',
+                          value: 'gust',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.gusts'),
                         },
                         {
-                          value: 'windcum',
+                          value: 'gustAccu',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.windcum'),
                         },
-                        { value: 'cat', label: localize(this.hass, 'component.windy-card.editor.options.overlay.cat') },
+                        {
+                          value: 'turbulence',
+                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.cat'),
+                        },
                         {
                           value: 'icing',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.icing'),
                         },
                         // Expanded
                         {
-                          value: 'snow',
+                          value: 'snowAccu',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.snow'),
                         },
                         {
-                          value: 'snowdepth',
+                          value: 'snowcover',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.snowdepth'),
                         },
                         {
@@ -215,18 +218,21 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                         },
                         { value: 'rh', label: localize(this.hass, 'component.windy-card.editor.options.overlay.rh') },
                         {
-                          value: 'freezing',
+                          value: 'deg0',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.freezing'),
                         },
                         {
-                          value: 'wetbulb',
+                          value: 'wetbulbtemp',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.wetbulb'),
                         },
                         {
                           value: 'solarpower',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.solarpower'),
                         },
-                        { value: 'uv', label: localize(this.hass, 'component.windy-card.editor.options.overlay.uv') },
+                        {
+                          value: 'uvindex',
+                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.uv'),
+                        },
                         {
                           value: 'hclouds',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.hclouds'),
@@ -245,20 +251,23 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.cloudtop'),
                         },
                         {
-                          value: 'cloudbase',
+                          value: 'cbase',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.cloudbase'),
                         },
                         {
                           value: 'visibility',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.visibility'),
                         },
-                        { value: 'cap', label: localize(this.hass, 'component.windy-card.editor.options.overlay.cap') },
                         {
-                          value: 'thermals',
+                          value: 'cape',
+                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.cap'),
+                        },
+                        {
+                          value: 'ccl',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.thermals'),
                         },
                         {
-                          value: 'swell',
+                          value: 'swell1',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.swell'),
                         },
                         {
@@ -270,7 +279,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.swell3'),
                         },
                         {
-                          value: 'wwave',
+                          value: 'wwaves',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.wwave'),
                         },
                         { value: 'sst', label: localize(this.hass, 'component.windy-card.editor.options.overlay.sst') },
@@ -279,30 +288,33 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.currents'),
                         },
                         {
-                          value: 'tidalcurrents',
+                          value: 'currentsTide',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.tidalcurrents'),
                         },
                         { value: 'no2', label: localize(this.hass, 'component.windy-card.editor.options.overlay.no2') },
                         {
-                          value: 'pm25',
+                          value: 'pm2p5',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.pm25'),
                         },
                         {
-                          value: 'aerosol',
+                          value: 'aod550',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.aerosol'),
                         },
                         {
-                          value: 'ozone',
+                          value: 'gtco3',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.ozone'),
                         },
-                        { value: 'so2', label: localize(this.hass, 'component.windy-card.editor.options.overlay.so2') },
                         {
-                          value: 'surfaceozone',
+                          value: 'tcso2',
+                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.so2'),
+                        },
+                        {
+                          value: 'go3',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.surfaceozone'),
                         },
-                        { value: 'co', label: localize(this.hass, 'component.windy-card.editor.options.overlay.co') },
+                        { value: 'cosc', label: localize(this.hass, 'component.windy-card.editor.options.overlay.co') },
                         {
-                          value: 'dust',
+                          value: 'dustsm',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.dust'),
                         },
                         {
@@ -310,19 +322,19 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.pressure'),
                         },
                         {
-                          value: 'extreme',
+                          value: 'efiWind',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.extreme'),
                         },
                         {
-                          value: 'warnings',
+                          value: 'capAlerts',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.warnings'),
                         },
                         {
-                          value: 'drought',
+                          value: 'drought40',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.drought'),
                         },
                         {
-                          value: 'fire',
+                          value: 'fwi',
                           label: localize(this.hass, 'component.windy-card.editor.options.overlay.fire'),
                         },
                       ],

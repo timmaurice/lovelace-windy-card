@@ -98,13 +98,44 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
   /** Resolve overlay from entity state or explicit config value */
   private _getOverlay(): string {
+    let rawOverlay = this._config.overlay ?? 'wind';
     if (this._config.overlay_entity && this.hass?.states) {
       const entityState = this.hass.states[this._config.overlay_entity];
       if (entityState?.state) {
-        return entityState.state;
+        rawOverlay = entityState.state;
       }
     }
-    return this._config.overlay ?? 'wind';
+
+    const legacyMap: Record<string, string> = {
+      raincum: 'rainAccu',
+      gusts: 'gust',
+      windcum: 'gustAccu',
+      cat: 'turbulence',
+      snow: 'snowAccu',
+      snowdepth: 'snowcover',
+      freezing: 'deg0',
+      wetbulb: 'wetbulbtemp',
+      uv: 'uvindex',
+      cloudbase: 'cbase',
+      cap: 'cape',
+      thermals: 'ccl',
+      swell: 'swell1',
+      wwave: 'wwaves',
+      tidalcurrents: 'currentsTide',
+      pm25: 'pm2p5',
+      aerosol: 'aod550',
+      ozone: 'gtco3',
+      so2: 'tcso2',
+      surfaceozone: 'go3',
+      co: 'cosc',
+      dust: 'dustsm',
+      extreme: 'efiWind',
+      warnings: 'capAlerts',
+      drought: 'drought40',
+      fire: 'fwi',
+    };
+
+    return legacyMap[rawOverlay] || rawOverlay;
   }
 
   /** Resolve map center lat/lon from zone entity or explicit config values */
@@ -215,11 +246,13 @@ export class WindyCard extends LitElement implements LovelaceCard {
       const iframe = container?.querySelector('iframe');
       if (iframe) {
         // Force reload original iframe source
-        const currentSrc = iframe.src;
-        iframe.src = 'about:blank';
-        setTimeout(() => {
-          iframe.src = currentSrc;
-        }, 10);
+        const currentSrc = iframe.getAttribute('src');
+        if (currentSrc) {
+          iframe.src = 'about:blank';
+          setTimeout(() => {
+            iframe.src = currentSrc;
+          }, 10);
+        }
       }
     }
   }
@@ -283,9 +316,43 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
     const overlay = this._getOverlay();
     const isRadarOrSatellite = ['radar', 'satellite'].includes(overlay);
-    const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'cat', 'icing', 'cap'].includes(overlay);
+    const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'turbulence', 'icing', 'cape'].includes(
+      overlay,
+    );
 
-    const product = isRadarOrSatellite ? '' : (this._config.product ?? 'ecmwf');
+    const hasFixedProduct = [
+      'fwi',
+      'dfm10h',
+      'waves',
+      'swell1',
+      'swell2',
+      'swell3',
+      'wwaves',
+      'sst',
+      'currents',
+      'currentsTide',
+      'airQ',
+      'no2',
+      'pm2p5',
+      'aod550',
+      'gtco3',
+      'tcso2',
+      'go3',
+      'cosc',
+      'dustsm',
+      'efiTemp',
+      'efiWind',
+      'efiRain',
+      'capAlerts',
+      'drought40',
+      'drought100',
+      'soilMoisture40',
+      'soilMoisture100',
+      'moistureAnom40',
+      'moistureAnom100',
+    ].includes(overlay);
+
+    const product = isRadarOrSatellite || hasFixedProduct ? '' : (this._config.product ?? 'ecmwf');
     const level = supportsElevation ? (this._config.level ?? 'surface') : 'surface';
 
     const metricTemp = this._config.metric_temp ?? 'default';

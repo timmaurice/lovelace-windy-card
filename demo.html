@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Windy Overlays Demo</title>
+    <!-- Use a modern, beautiful font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family:
+          'Outfit',
+          -apple-system,
+          sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        color: #f8fafc;
+        margin: 0;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        box-sizing: border-box;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      h1 {
+        margin: 0 0 10px 0;
+        font-weight: 600;
+        font-size: 32px;
+        background: linear-gradient(to right, #38bdf8, #818cf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .subtitle {
+        font-size: 15px;
+        color: #94a3b8;
+        margin: 0;
+      }
+
+      .controls-wrapper {
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 5px;
+      }
+
+      /* Custom Scrollbar for controls */
+      .controls::-webkit-scrollbar {
+        width: 8px;
+      }
+      .controls::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+      }
+      .controls::-webkit-scrollbar-thumb {
+        background: #475569;
+        border-radius: 4px;
+      }
+      .controls::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+      }
+
+      button {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: #cbd5e1;
+        padding: 10px 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 14px;
+        font-family: inherit;
+        font-weight: 500;
+      }
+
+      button:hover {
+        background: rgba(56, 189, 248, 0.1);
+        border-color: rgba(56, 189, 248, 0.5);
+        color: #f0f9ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+      }
+
+      button.active {
+        background: #38bdf8;
+        color: #0f172a;
+        border-color: #38bdf8;
+        font-weight: 600;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .iframe-container {
+        flex: 1;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #0f172a;
+        position: relative;
+      }
+
+      .loading-shimmer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, #0f172a 25%, #1e293b 50%, #0f172a 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .loading-shimmer.active {
+        opacity: 1;
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+        position: relative;
+        z-index: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Windy Overlays Test Gallery</h1>
+      <p class="subtitle">Interactive demo to experiment with the fully corrected Windy Maps API overlay parameters.</p>
+    </div>
+
+    <div class="controls-wrapper">
+      <div class="controls" id="btn-container"></div>
+    </div>
+
+    <div class="iframe-container">
+      <div class="loading-shimmer" id="loading"></div>
+      <iframe id="windy-iframe" src="about:blank"></iframe>
+    </div>
+
+    <script>
+      const overlays = {
+        wind: 'Wind',
+        gust: 'Wind Gusts',
+        gustAccu: 'Wind Accumulation',
+        temp: 'Temperature',
+        dewpoint: 'Dew Point',
+        rh: 'Humidity',
+        wetbulbtemp: 'Wet-bulb Temp',
+        deg0: 'Freezing Altitude',
+        rain: 'Rain / Snow',
+        rainAccu: 'Rain Accumulation',
+        snowAccu: 'Snow Accumulation',
+        snowcover: 'Snow Depth',
+        ptype: 'Precipitation Type',
+        thunder: 'Thunderstorms',
+        clouds: 'Clouds',
+        hclouds: 'High Clouds',
+        mclouds: 'Medium Clouds',
+        lclouds: 'Low Clouds',
+        cloudtop: 'Cloud Tops',
+        cbase: 'Cloud Base',
+        visibility: 'Visibility',
+        fog: 'Fog',
+        turbulence: 'Clear Air Turbulence',
+        icing: 'Icing',
+        cape: 'CAPE Index',
+        ccl: 'Thermals',
+        radar: 'Weather Radar',
+        satellite: 'Satellite',
+        solarpower: 'Solar Power',
+        uvindex: 'UV Index',
+        waves: 'Waves',
+        swell1: 'Swell 1',
+        swell2: 'Swell 2',
+        swell3: 'Swell 3',
+        wwaves: 'Wind Waves',
+        sst: 'Sea Surface Temp',
+        currents: 'Currents',
+        currentsTide: 'Tidal Currents',
+        no2: 'NO2',
+        pm2p5: 'PM2.5',
+        aod550: 'Aerosol',
+        gtco3: 'Ozone Layer',
+        tcso2: 'SO2',
+        go3: 'Surface Ozone',
+        cosc: 'CO Concentration',
+        dustsm: 'Dust Mass',
+        pressure: 'Pressure',
+        efiWind: 'Extreme Forecast',
+        capAlerts: 'Weather Warnings',
+        drought40: 'Drought Monitoring',
+        fwi: 'Fire Danger',
+      };
+
+      const fixedProductOverlays = [
+        'fwi',
+        'dfm10h',
+        'waves',
+        'swell1',
+        'swell2',
+        'swell3',
+        'wwaves',
+        'sst',
+        'currents',
+        'currentsTide',
+        'airQ',
+        'no2',
+        'pm2p5',
+        'aod550',
+        'gtco3',
+        'tcso2',
+        'go3',
+        'cosc',
+        'dustsm',
+        'efiTemp',
+        'efiWind',
+        'efiRain',
+        'capAlerts',
+        'drought40',
+        'drought100',
+        'soilMoisture40',
+        'soilMoisture100',
+        'moistureAnom40',
+        'moistureAnom100',
+      ];
+
+      const container = document.getElementById('btn-container');
+      const iframe = document.getElementById('windy-iframe');
+      const loader = document.getElementById('loading');
+
+      iframe.onload = () => {
+        loader.classList.remove('active');
+      };
+
+      function loadOverlay(key) {
+        // UI updates
+        document.querySelectorAll('button').forEach((btn) => btn.classList.remove('active'));
+        document.getElementById('btn-' + key).classList.add('active');
+        loader.classList.add('active');
+
+        // Generate Map Parameters
+        const isRadarOrSatellite = ['radar', 'satellite'].includes(key);
+        const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'turbulence', 'icing', 'cape'].includes(
+          key,
+        );
+        const hasFixedProduct = fixedProductOverlays.includes(key);
+
+        // This mirrors precisely the new logic inside windy-card.ts:
+        const product = isRadarOrSatellite || hasFixedProduct ? '' : 'ecmwf';
+        const level = supportsElevation ? 'surface' : 'surface'; // Force surface for generic demo
+
+        // 51.95, 7.98 is roughly centered over Germany
+        const url = `https://embed.windy.com/embed.html?type=map&location=coordinates&zoom=4&overlay=${key}&product=${product}&level=${level}&lat=51.95&lon=7.98`;
+
+        // Allow brief animation delay to visually indicate refresh to user
+        setTimeout(() => {
+          iframe.src = url;
+        }, 50);
+      }
+
+      // Initialize Map
+      Object.entries(overlays).forEach(([key, label]) => {
+        const btn = document.createElement('button');
+        btn.id = 'btn-' + key;
+        btn.textContent = label;
+        btn.onclick = () => loadOverlay(key);
+        container.appendChild(btn);
+      });
+
+      // Launch default view
+      loadOverlay('fwi');
+    </script>
+  </body>
+</html>

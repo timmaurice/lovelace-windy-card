@@ -37,6 +37,15 @@ function getIframeSrc(card: WindyCard): string {
   return url as string;
 }
 
+function getForecastIframeSrc(card: WindyCard): string {
+  const rendered = (
+    card as unknown as { _renderForecast: () => { strings: TemplateStringsArray; values: unknown[] } }
+  )._renderForecast();
+  const values = rendered.values;
+  const url = values.find((v) => typeof v === 'string' && (v as string).startsWith('https://'));
+  return url as string;
+}
+
 describe('WindyCard', () => {
   describe('getStubConfig()', () => {
     it('returns a valid stub config', () => {
@@ -113,6 +122,26 @@ describe('WindyCard', () => {
     it('defaults product to ecmwf', () => {
       const card = makeCard({ overlay: 'wind' });
       const src = getIframeSrc(card);
+      expect(src).toContain('product=ecmwf');
+    });
+  });
+
+  describe('URL generation — forecast product', () => {
+    it('uses forecast_product when provided', () => {
+      const card = makeCard({ forecast_product: 'iconD2' });
+      const src = getForecastIframeSrc(card);
+      expect(src).toContain('product=iconD2');
+    });
+
+    it('falls back to product when forecast_product is absent', () => {
+      const card = makeCard({ product: 'gfs' });
+      const src = getForecastIframeSrc(card);
+      expect(src).toContain('product=gfs');
+    });
+
+    it('defaults to ecmwf when both product and forecast_product are absent', () => {
+      const card = makeCard();
+      const src = getForecastIframeSrc(card);
       expect(src).toContain('product=ecmwf');
     });
   });

@@ -138,6 +138,7 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 ## Known Limitations
 
 This card uses the free [Windy Embed Widget](https://embed.windy.com/config/map), which has strict functional limitations compared to the full Windy.com website or app:
+
 - **Premium Login:** The embed widget does not support user authentication or token passing. Premium features, such as 1-hour forecast steps, are only available on the main Windy app.
 - **Radar Units Support:** The radar overlay natively displays intensity in `dBZ` (unlike the full app's `mm/h` toggle). This is the intended behavior of the Windy Embed API. Unit settings configured on this card (`metric_rain`, etc.) serve as your preferred defaults for the spot forecast and other compatible overlays.
 - **Satellite Spectrum:** Although Windy provides Blue, Visible, and Infrared satellite options, the embed iframe automatically strips or ignores external URL overrides (like `satelliteMode=IRBT`) and forces the default view. Toggling these maps must be done manually using the controls within the iframe.

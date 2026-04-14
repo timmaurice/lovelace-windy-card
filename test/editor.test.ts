@@ -64,6 +64,20 @@ describe('WindyCardEditor', () => {
       const flatSchema = flattenSchema(schema);
       expect(flatSchema.some((s) => s.name === 'no_padding')).toBe(true);
     });
+
+    it('shows forecast_product selector when not in map_only mode', () => {
+      const editor = makeEditor({ default_mode: 'map' });
+      const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+      const flatSchema = flattenSchema(schema);
+      expect(flatSchema.some((s) => s.name === 'forecast_product')).toBe(true);
+    });
+
+    it('hides forecast_product selector when in map_only mode', () => {
+      const editor = makeEditor({ default_mode: 'map_only' });
+      const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+      const flatSchema = flattenSchema(schema);
+      expect(flatSchema.some((s) => s.name === 'forecast_product')).toBe(false);
+    });
   });
 });
 

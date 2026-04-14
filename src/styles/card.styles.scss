@@ -64,6 +64,9 @@ iframe {
   border: none;
   display: block;
   background: var(--card-background-color);
+  /* Fix for Safari iOS where iframe width 100% defaults to content width */
+  width: 1px;
+  min-width: 100%;
 }
 
 .iframe-container {

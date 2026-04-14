@@ -79,6 +79,7 @@ export interface WindyCardConfig extends LovelaceCardConfig {
   overlay_entity?: string;
   level?: string;
   product?: string;
+  forecast_product?: string;
   metric_temp?: 'default' | '°C' | '°F';
   metric_rain?: 'default' | 'mm' | 'in';
   metric_wind?: 'default' | 'kt' | 'm/s' | 'km/h' | 'mph' | 'bft';

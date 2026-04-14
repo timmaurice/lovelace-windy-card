@@ -12,6 +12,7 @@
       "view": "View",
       "location": "Location",
       "layer": "Map Layer",
+      "forecast": "Forecast Data",
       "units": "Units",
       "display": "Display Options"
     },
@@ -26,6 +27,7 @@
       "overlay": "Layer (default)",
       "level": "Altitude",
       "product": "Forecast model",
+      "forecast_product": "Data Provider",
       "aspect_ratio": "Aspect ratio",
       "height": "Fixed height (px)",
       "metric_temp": "Temperature",

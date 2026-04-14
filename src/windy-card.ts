@@ -309,8 +309,9 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const metricTemp = this._config.metric_temp ?? 'default';
     const metricRain = this._config.metric_rain ?? 'default';
     const metricWind = this._config.metric_wind ?? 'default';
+    const product = this._config.forecast_product ?? this._config.product ?? 'ecmwf';
 
-    const url = `https://embed.windy.com/embed.html?type=forecast&location=coordinates&detail=true&detailLat=${lat}&detailLon=${lon}&metricTemp=${metricTemp}&metricRain=${metricRain}&metricWind=${metricWind}`;
+    const url = `https://embed.windy.com/embed.html?type=forecast&location=coordinates&detail=true&detailLat=${lat}&detailLon=${lon}&metricTemp=${metricTemp}&metricRain=${metricRain}&metricWind=${metricWind}&product=${product}`;
 
     return this._renderIframeWithWrapper(url, 185, 'Windy Forecast', false);
   }

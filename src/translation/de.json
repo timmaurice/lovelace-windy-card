@@ -12,6 +12,7 @@
       "view": "Ansicht",
       "location": "Standort",
       "layer": "Kartenebene",
+      "forecast": "Vorhersagedaten",
       "units": "Einheiten",
       "display": "Anzeigeoptionen"
     },
@@ -26,6 +27,7 @@
       "overlay": "Ebene (Standard)",
       "level": "Höhe",
       "product": "Vorhersagemodell",
+      "forecast_product": "Datenanbieter",
       "aspect_ratio": "Seitenverhältnis",
       "height": "Feste Höhe (px)",
       "metric_temp": "Temperatur",

@@ -12,6 +12,7 @@
       "view": "Vue",
       "location": "Localisation",
       "layer": "Couche de carte",
+      "forecast": "Données de prévision",
       "units": "Unités",
       "display": "Options d'affichage"
     },
@@ -26,6 +27,7 @@
       "overlay": "Couche (par défaut)",
       "level": "Altitude",
       "product": "Modèle de prévision",
+      "forecast_product": "Fournisseur de données",
       "aspect_ratio": "Format d'image",
       "height": "Hauteur fixe (px)",
       "metric_temp": "Température",

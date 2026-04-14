@@ -24,6 +24,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
     const isRadarOrSatellite = ['radar', 'satellite'].includes(overlay);
     const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'cat', 'icing', 'cap'].includes(overlay);
     const isForecastOnly = this._config.default_mode === 'forecast_only';
+    const isMapOnly = this._config.default_mode === 'map_only';
 
     const schema: HaFormSchema[] = [
       // ── Section: View ──────────────────────────────────────────────
@@ -328,6 +329,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                     },
                   },
                 },
+
                 ...(supportsElevation
                   ? [
                       {
@@ -409,7 +411,9 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                               { value: 'ecmwf', label: 'ECMWF' },
                               { value: 'gfs', label: 'GFS' },
                               { value: 'icon', label: 'ICON' },
-                              { value: 'adome', label: 'ADOME' },
+                              { value: 'iconD2', label: 'ICON-D2' },
+                              { value: 'arome', label: 'AROME' },
+                              { value: 'aladin', label: 'ALADIN' },
                               { value: 'nems', label: 'NEMS' },
                               { value: 'nam', label: 'NAM' },
                               { value: 'hrrr', label: 'HRRR' },
@@ -419,6 +423,38 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                       } as HaFormSchema,
                     ]
                   : []),
+              ],
+            } as HaFormSchema,
+          ]
+        : []),
+
+      // ── Section: Forecast Data ───────────────────────────────────────
+      ...(!isMapOnly
+        ? [
+            {
+              name: '',
+              type: 'expandable',
+              title: localize(this.hass, 'component.windy-card.editor.sections.forecast'),
+              schema: [
+                {
+                  name: 'forecast_product',
+                  selector: {
+                    select: {
+                      mode: 'dropdown',
+                      options: [
+                        { value: 'ecmwf', label: 'ECMWF' },
+                        { value: 'gfs', label: 'GFS' },
+                        { value: 'icon', label: 'ICON' },
+                        { value: 'iconD2', label: 'ICON-D2' },
+                        { value: 'arome', label: 'AROME' },
+                        { value: 'aladin', label: 'ALADIN' },
+                        { value: 'nems', label: 'NEMS' },
+                        { value: 'nam', label: 'NAM' },
+                        { value: 'hrrr', label: 'HRRR' },
+                      ],
+                    },
+                  },
+                } as HaFormSchema,
               ],
             } as HaFormSchema,
           ]

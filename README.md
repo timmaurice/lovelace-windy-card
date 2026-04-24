@@ -92,9 +92,9 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 ### Forecast Options
 
-| Name               | Type   | Default | Description                                                       |
-| ------------------ | ------ | ------- | ----------------------------------------------------------------- |
-| `forecast_product` | string | `ecmwf` | Data provider for the spot forecast widget (e.g., AROME, ICON-D2) |
+| Name               | Type   | Default | Description                                                                  |
+| ------------------ | ------ | ------- | ---------------------------------------------------------------------------- |
+| `forecast_product` | string | `ecmwf` | Data provider for the spot forecast widget (e.g., AROME, ICON-EU, METEOBLUE) |
 
 ### View / Size
 
@@ -137,11 +137,17 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 ## Known Limitations
 
+<details>
+<summary>View known limitations</summary>
+
 This card uses the free [Windy Embed Widget](https://embed.windy.com/config/map), which has strict functional limitations compared to the full Windy.com website or app:
 
 - **Premium Login:** The embed widget does not support user authentication or token passing. Premium features, such as 1-hour forecast steps, are only available on the main Windy app.
 - **Radar Units Support:** The radar overlay natively displays intensity in `dBZ` (unlike the full app's `mm/h` toggle). This is the intended behavior of the Windy Embed API. Unit settings configured on this card (`metric_rain`, etc.) serve as your preferred defaults for the spot forecast and other compatible overlays.
 - **Satellite Spectrum:** Although Windy provides Blue, Visible, and Infrared satellite options, the embed iframe automatically strips or ignores external URL overrides (like `satelliteMode=IRBT`) and forces the default view. Toggling these maps must be done manually using the controls within the iframe.
+- **Superpose Radar:** The "Superpose Radar" toggle available on the full Windy.com satellite view is intentionally excluded from the free embed widget. It is unfortunately not possible to inject this button or combined overlay into the Home Assistant card.
+
+</details>
 
 ## Examples
 

@@ -23,13 +23,14 @@ A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive w
 - **Reliability** — Extensive test suite covering card logic, URL generation, and the configuration editor.
 - **Pressure isolines** toggle (disabled automatically for radar/satellite)
 - **Aspect ratio** or fixed pixel height for flexible layout. Maintains map and forecast dimensions seamlessly without layout shifts.
-- **Fully translated** — English, French, and German
+- **Fully translated** — English, French, German, and Italian
 
 ## Localization
 
 - English
 - French
 - German
+- Italian
 
 <details>
 <summary>Contributing Translations</summary>

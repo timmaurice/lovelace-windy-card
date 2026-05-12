@@ -14,7 +14,8 @@ A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive w
 ## Features
 
 - **Interactive Windy Map** with 50+ weather layers (wind, rain, temperature, radar, satellite, air quality, and more)
-- **Map Reset Button** to quickly re-center and reset zoom without reloading the dashboard
+- **Map Reset Button** to quickly re-center and reset zoom.
+- **Interaction Toggle** to lock/unlock map panning and zooming with clear visual state (`lock` / `lock-open-variant`).
 - **Spot Forecast** view for a detailed point forecast at any location
 - **Zone entity support** — point the map at any HA zone automatically
 - **Marker & Spot detail** — pin a specific lat/lon for the marker and spot forecast popup
@@ -115,12 +116,13 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 ### Display Options
 
-| Name            | Type    | Default | Description                                                   |
-| --------------- | ------- | ------- | ------------------------------------------------------------- |
-| `show_marker`   | boolean | `false` | Show a pin at the detail location                             |
-| `show_spot`     | boolean | `false` | Show the spot forecast popup                                  |
-| `show_pressure` | boolean | `false` | Overlay pressure isolines (not available for radar/satellite) |
-| `hide_message`  | boolean | `false` | Hide the Windy promotional message                            |
+| Name            | Type    | Default | Description                                                                         |
+| --------------- | ------- | ------- | ----------------------------------------------------------------------------------- |
+| `static_map`    | boolean | `false` | Disable map interaction. Adds a high-contrast toggle button to the vertical toolbar |
+| `show_marker`   | boolean | `false` | Show a pin at the detail location                                                   |
+| `show_spot`     | boolean | `false` | Show the spot forecast popup                                                        |
+| `show_pressure` | boolean | `false` | Overlay pressure isolines (not available for radar/satellite)                       |
+| `hide_message`  | boolean | `false` | Hide the Windy promotional message                                                  |
 
 ### Available Layers (`overlay`)
 

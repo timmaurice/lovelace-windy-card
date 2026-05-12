@@ -5,7 +5,9 @@
   "card": {
     "map": "Karte",
     "forecast": "Vorhersage",
-    "reset_map": "Karte zurücksetzen"
+    "reset_map": "Karte zurücksetzen",
+    "enable_interaction": "Interaktion aktivieren",
+    "disable_interaction": "Interaktion deaktivieren"
   },
   "editor": {
     "sections": {
@@ -37,7 +39,8 @@
       "show_spot": "Spot-Vorhersage einbeziehen",
       "show_pressure": "Isobaren anzeigen",
       "hide_message": "Werbung ausblenden",
-      "no_padding": "Padding und Rahmen entfernen (volle Breite)"
+      "no_padding": "Padding und Rahmen entfernen (volle Breite)",
+      "static_map": "Statische Karte (Interaktionen deaktivieren)"
     },
     "options": {
       "default_mode": {

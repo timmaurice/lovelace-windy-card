@@ -5,7 +5,9 @@
   "card": {
     "map": "Carte",
     "forecast": "Prévisions",
-    "reset_map": "Réinitialiser la carte"
+    "reset_map": "Réinitialiser la carte",
+    "enable_interaction": "Activer l'interaction",
+    "disable_interaction": "Désactiver l'interaction"
   },
   "editor": {
     "sections": {
@@ -37,7 +39,8 @@
       "show_spot": "Inclure les prévisions locales",
       "show_pressure": "Isobares",
       "hide_message": "Masquer le texte promotionnel",
-      "no_padding": "Supprimer le rembourrage et la bordure (pleine largeur)"
+      "no_padding": "Supprimer le rembourrage et la bordure (pleine largeur)",
+      "static_map": "Carte statique (désactiver les interactions)"
     },
     "options": {
       "default_mode": {

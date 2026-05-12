@@ -1,0 +1,10 @@
+title: Home
+views:
+  - title: Dashboard
+    cards:
+      - type: custom:windy-card
+        title: Local Weather
+        static_map: true
+        overlay: wind
+        zoom: 7
+        aspect_ratio: '16:9'

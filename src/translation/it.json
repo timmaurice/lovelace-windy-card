@@ -5,7 +5,9 @@
   "card": {
     "map": "Mappa",
     "forecast": "Previsioni",
-    "reset_map": "Reimposta mappa"
+    "reset_map": "Ripristina mappa",
+    "enable_interaction": "Attiva interazione",
+    "disable_interaction": "Disattiva interazione"
   },
   "editor": {
     "sections": {
@@ -37,7 +39,8 @@
       "show_spot": "Includi previsione spot",
       "show_pressure": "Isolinee di pressione",
       "hide_message": "Nascondi testo promozionale",
-      "no_padding": "Rimuovi margini e bordo (larghezza piena)"
+      "no_padding": "Rimuovi margini e bordo (larghezza piena)",
+      "static_map": "Mappa statica (disabilita interazioni)"
     },
     "options": {
       "default_mode": {

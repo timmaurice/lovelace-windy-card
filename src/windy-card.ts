@@ -14,6 +14,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config!: WindyCardConfig;
   @state() private _mode: ViewMode = 'map';
+  @state() private _isStatic: boolean = false;
 
   public setConfig(config: WindyCardConfig): void {
     if (!config) {
@@ -31,6 +32,8 @@ export class WindyCard extends LitElement implements LovelaceCard {
     } else {
       this._mode = 'map';
     }
+
+    this._isStatic = !!newConfig.static_map;
   }
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
@@ -257,6 +260,11 @@ export class WindyCard extends LitElement implements LovelaceCard {
     }
   }
 
+  private _toggleStatic(e: Event) {
+    e.preventDefault();
+    this._isStatic = !this._isStatic;
+  }
+
   private _renderIframeWithWrapper(
     url: string,
     defaultHeight: number,
@@ -266,15 +274,27 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const ratioPadding = this._getRatioPadding();
     const height = this._config.height;
 
+    const pointerEvents = this._isStatic ? 'pointer-events: none;' : '';
+
     const resetButton = showResetButton
       ? html`<button
-          class="reset-button"
+          class="action-button reset-button"
           @click=${this._resetMap}
           title="${localize(this.hass, 'component.windy-card.card.reset_map') ?? 'Reset Map'}"
         >
           <ha-icon icon="mdi:crosshairs-gps"></ha-icon>
         </button>`
       : '';
+
+    const toggleStaticButton = html`<button
+      class="action-button static-toggle-button ${this._isStatic ? 'is-active' : ''}"
+      @click=${this._toggleStatic}
+      title="${this._isStatic
+        ? (localize(this.hass, 'component.windy-card.card.enable_interaction') ?? 'Enable Interaction')
+        : (localize(this.hass, 'component.windy-card.card.disable_interaction') ?? 'Disable Interaction')}"
+    >
+      <ha-icon icon="${this._isStatic ? 'mdi:lock' : 'mdi:lock-open-variant'}"></ha-icon>
+    </button>`;
 
     if (ratioPadding && !height) {
       return html`
@@ -283,11 +303,11 @@ export class WindyCard extends LitElement implements LovelaceCard {
           style="padding-bottom: ${ratioPadding}; position: relative; width: 100%; height: 0;"
         >
           <iframe
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; ${pointerEvents}"
             src="${url}"
             title="${title}"
           ></iframe>
-          ${resetButton}
+          <div class="action-buttons">${resetButton} ${toggleStaticButton}</div>
         </div>
       `;
     }
@@ -299,9 +319,9 @@ export class WindyCard extends LitElement implements LovelaceCard {
           height="${height ?? defaultHeight}"
           src="${url}"
           title="${title}"
-          style="border: none; display: block;"
+          style="border: none; display: block; ${pointerEvents}"
         ></iframe>
-        ${resetButton}
+        <div class="action-buttons">${resetButton} ${toggleStaticButton}</div>
       </div>
     `;
   }

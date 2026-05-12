@@ -1,0 +1,9 @@
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: homeassistant/home-assistant:stable
+    volumes:
+      - ./ha-config:/config
+      - ./dist:/config/www
+    ports:
+      - 8123:8123

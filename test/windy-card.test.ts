@@ -301,7 +301,7 @@ describe('WindyCard', () => {
       const hasResetButtonValue = values.some((val) => {
         // Evaluate if one of the sub-templates has a reset-button
         if (val && typeof val === 'object' && 'strings' in val) {
-          return (val as { strings: TemplateStringsArray }).strings.join(' ').includes('class="reset-button"');
+          return (val as { strings: TemplateStringsArray }).strings.join(' ').includes('reset-button');
         }
         return false;
       });
@@ -318,7 +318,7 @@ describe('WindyCard', () => {
       const values = rendered.values;
       const hasResetButtonValue = values.some((val) => {
         if (val && typeof val === 'object' && 'strings' in val) {
-          return (val as { strings: TemplateStringsArray }).strings.join(' ').includes('class="reset-button"');
+          return (val as { strings: TemplateStringsArray }).strings.join(' ').includes('reset-button');
         }
         return false;
       });
@@ -404,6 +404,57 @@ describe('WindyCard', () => {
       )._handleTabKeyDown.bind(card);
       handleKeyDown({ key: 'End', preventDefault: vi.fn() } as unknown as KeyboardEvent);
       expect((card as unknown as { _mode: string })._mode).toBe('forecast');
+    });
+  });
+
+  describe('Interaction & Static Map', () => {
+    it('initializes _isStatic from config', () => {
+      const card = makeCard({ static_map: true });
+      expect((card as unknown as { _isStatic: boolean })._isStatic).toBe(true);
+    });
+
+    it('toggles _isStatic when _toggleStatic is called', () => {
+      const card = makeCard({ static_map: false });
+      const toggle = (card as unknown as { _toggleStatic: (ev: Partial<Event>) => void })._toggleStatic.bind(card);
+      toggle({ preventDefault: vi.fn() } as unknown as Event);
+      expect((card as unknown as { _isStatic: boolean })._isStatic).toBe(true);
+      toggle({ preventDefault: vi.fn() } as unknown as Event);
+      expect((card as unknown as { _isStatic: boolean })._isStatic).toBe(false);
+    });
+
+    it('applies pointer-events: none to iframe when _isStatic is true', () => {
+      const card = makeCard({ static_map: true });
+      const rendered = (
+        card as unknown as { _renderMap: () => { strings: TemplateStringsArray; values: unknown[] } }
+      )._renderMap();
+
+      // The pointerEvents string is in the values array if it's rendered into the style attribute
+      const hasPointerEventsNone = rendered.values.some(
+        (val) => typeof val === 'string' && val.includes('pointer-events: none;'),
+      );
+      expect(hasPointerEventsNone).toBe(true);
+    });
+
+    it('renders the lock icon based on _isStatic state', () => {
+      const card = makeCard({ static_map: true });
+      const rendered = (
+        card as unknown as { _renderMap: () => { strings: TemplateStringsArray; values: unknown[] } }
+      )._renderMap();
+
+      // The toggleStaticButton is a TemplateResult in the values
+      const toggleButtonTemplate = rendered.values.find(
+        (val) =>
+          val &&
+          typeof val === 'object' &&
+          'strings' in val &&
+          (val as { strings: TemplateStringsArray }).strings.join(' ').includes('static-toggle-button'),
+      );
+
+      expect(toggleButtonTemplate).toBeTruthy();
+      const values = (toggleButtonTemplate as { values: unknown[] }).values;
+
+      // When _isStatic is true, it should show mdi:lock
+      expect(values).toContain('mdi:lock');
     });
   });
 });

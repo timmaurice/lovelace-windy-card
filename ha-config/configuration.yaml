@@ -1,0 +1,17 @@
+default_config:
+
+frontend:
+
+lovelace:
+  resource_mode: yaml
+  dashboards:
+    lovelace:
+      mode: yaml
+      filename: ui-lovelace.yaml
+      title: Overview
+      icon: mdi:view-dashboard
+      show_in_sidebar: true
+
+  resources:
+    - url: /local/windy-card.js
+      type: module

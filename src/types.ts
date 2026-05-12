@@ -90,6 +90,7 @@ export interface WindyCardConfig extends LovelaceCardConfig {
   show_pressure?: boolean;
   hide_message?: boolean;
   no_padding?: boolean;
+  static_map?: boolean;
 }
 
 export interface HaFormSchema {

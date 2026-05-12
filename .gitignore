@@ -7,3 +7,7 @@ bun.lock
 yarn.lock
 
 .DS_Store
+
+ha-config/*
+!ha-config/configuration.yaml
+!ha-config/ui-lovelace.yaml

@@ -73,10 +73,17 @@ iframe {
   position: relative;
   width: 100%;
 
-  .reset-button {
+  .action-buttons {
     position: absolute;
     top: 13px;
     left: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+  }
+
+  .action-button {
     background-color: var(--card-background-color, #ffffff);
     color: var(--primary-text-color, #000000);
     border: 1px solid var(--divider-color, #e8e8e8);
@@ -88,7 +95,6 @@ iframe {
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    z-index: 10;
     opacity: 0;
     pointer-events: none;
     transition:
@@ -118,9 +124,15 @@ iframe {
     ha-icon {
       --mdc-icon-size: 15px;
     }
+
+    &.is-active {
+      background-color: var(--primary-text-color, #000000);
+      color: var(--card-background-color, #ffffff);
+      border-color: var(--primary-text-color, #000000);
+    }
   }
 
-  &:hover .reset-button {
+  &:hover .action-button {
     opacity: 1;
     pointer-events: auto;
   }

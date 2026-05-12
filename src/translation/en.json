@@ -5,7 +5,9 @@
   "card": {
     "map": "Map",
     "forecast": "Forecast",
-    "reset_map": "Reset Map"
+    "reset_map": "Reset Map",
+    "enable_interaction": "Enable interaction",
+    "disable_interaction": "Disable interaction"
   },
   "editor": {
     "sections": {
@@ -37,7 +39,8 @@
       "show_spot": "Include spot forecast",
       "show_pressure": "Pressure isolines",
       "hide_message": "Hide promotional text",
-      "no_padding": "Remove padding and border (full width)"
+      "no_padding": "Remove padding and border (full width)",
+      "static_map": "Static map (disable interactions)"
     },
     "options": {
       "default_mode": {

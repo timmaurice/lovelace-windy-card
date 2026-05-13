@@ -25,7 +25,7 @@ describe('localize()', () => {
   });
 
   it('falls back to English for an unknown language', () => {
-    const result = localize(mockHass('es'), 'component.windy-card.card.map');
+    const result = localize(mockHass('xx'), 'component.windy-card.card.map');
     expect(result).toBe('Map');
   });
 

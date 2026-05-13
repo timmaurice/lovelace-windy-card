@@ -1,0 +1,130 @@
+{
+  "common": {
+    "description": "Una tarjeta Lovelace para el mapa y pronóstico de Windy."
+  },
+  "card": {
+    "map": "Mapa",
+    "forecast": "Pronóstico",
+    "reset_map": "Restablecer mapa",
+    "enable_interaction": "Habilitar interacción",
+    "disable_interaction": "Deshabilitar interacción"
+  },
+  "editor": {
+    "sections": {
+      "view": "Vista",
+      "location": "Ubicación",
+      "layer": "Capa del mapa",
+      "forecast": "Datos de pronóstico",
+      "units": "Unidades",
+      "display": "Opciones de visualización"
+    },
+    "labels": {
+      "title": "Título (opcional)",
+      "latitude": "Latitud",
+      "longitude": "Longitud",
+      "location": "Entidad de ubicación (Zona o rastreador, anula lat/lon)",
+      "zoom": "Nivel de zoom (3-11)",
+      "default_mode": "Modo predeterminado",
+      "overlay_entity": "Entidad de capa (el estado se usa como capa)",
+      "overlay": "Capa (predeterminada)",
+      "level": "Altitud",
+      "product": "Modelo de pronóstico",
+      "forecast_product": "Proveedor de datos",
+      "aspect_ratio": "Relación de aspecto",
+      "height": "Altura fija (px)",
+      "metric_temp": "Temperatura",
+      "metric_rain": "Lluvia / Nieve",
+      "metric_wind": "Viento",
+      "show_marker": "Mostrar marcador",
+      "show_spot": "Incluir pronóstico local",
+      "show_pressure": "Líneas de presión",
+      "hide_message": "Ocultar texto promocional",
+      "no_padding": "Quitar relleno y borde (ancho completo)",
+      "static_map": "Mapa estático (deshabilitar interacciones)",
+      "autoplay": "Reproducción automática del mapa"
+    },
+    "options": {
+      "default_mode": {
+        "map": "Mapa",
+        "forecast": "Pronóstico",
+        "map_only": "Solo mapa (sin botón de alternar)",
+        "forecast_only": "Solo pronóstico (sin botón de alternar)"
+      },
+      "aspect_ratio": {
+        "none": "Ninguno (usar altura fija)"
+      },
+      "overlay": {
+        "radar": "Radar meteorológico",
+        "satellite": "Satélite",
+        "wind": "Viento",
+        "rain": "Lluvia, truenos",
+        "temp": "Temperatura",
+        "clouds": "Nubes",
+        "waves": "Olas",
+        "raincum": "Acumulación de lluvia",
+        "gusts": "Ráfagas de viento",
+        "windcum": "Acumulación de viento",
+        "cat": "Turbulencia en aire claro (CAT)",
+        "icing": "Peligro de formación de hielo",
+        "snow": "Nieve nueva",
+        "snowdepth": "Profundidad de la nieve",
+        "ptype": "Tipo de precipitación",
+        "thunder": "Tormentas eléctricas",
+        "dewpoint": "Punto de rocío",
+        "rh": "Humedad",
+        "freezing": "Altitud de congelación",
+        "wetbulb": "Temperatura de bulbo húmedo",
+        "solarpower": "Energía solar",
+        "uv": "Índice UV",
+        "hclouds": "Nubes altas",
+        "mclouds": "Nubes medias",
+        "lclouds": "Nubes bajas",
+        "fog": "Niebla",
+        "cloudtop": "Cima de las nubes",
+        "cloudbase": "Base de las nubes",
+        "visibility": "Visibilidad",
+        "cap": "Índice CAPE",
+        "thermals": "Térmicas",
+        "swell": "Mar de fondo",
+        "swell2": "Mar de fondo 2",
+        "swell3": "Mar de fondo 3",
+        "wwave": "Olas de viento",
+        "sst": "Temperatura del mar",
+        "currents": "Corrientes",
+        "tidalcurrents": "Corrientes de marea",
+        "no2": "NO2",
+        "pm25": "PM2.5",
+        "aerosol": "Aerosol",
+        "ozone": "Capa de ozono",
+        "so2": "SO2",
+        "surfaceozone": "Ozono superficial",
+        "co": "Concentración de CO",
+        "dust": "Masa de polvo",
+        "pressure": "Presión",
+        "extreme": "Pronóstico extremo",
+        "warnings": "Alertas meteorológicas",
+        "drought": "Monitor de sequía",
+        "fire": "Peligro de incendio"
+      },
+      "metrics": {
+        "default": "Predeterminado (ajuste de Windy)"
+      },
+      "levels": {
+        "surface": "Superficie (0m / 0ft)",
+        "100m": "100m / 330ft",
+        "950h": "950hPa – 600m / 2000ft",
+        "925h": "925hPa – 750m / 2500ft",
+        "900h": "900hPa – 900m / 3000ft",
+        "850h": "850hPa – 1500m / 5000ft",
+        "800h": "800hPa – 2000m / 6500ft",
+        "700h": "700hPa – 3000m / 10000ft",
+        "600h": "600hPa – 4200m / 14000ft",
+        "500h": "500hPa – 5500m / 18000ft",
+        "400h": "400hPa – 7000m / 23000ft",
+        "300h": "300hPa – 9000m / 30000ft",
+        "200h": "200hPa – 12000m / 39000ft",
+        "150h": "150hPa – 14000m / 46000ft"
+      }
+    }
+  }
+}

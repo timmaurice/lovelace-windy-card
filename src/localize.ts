@@ -2,14 +2,18 @@ import { HomeAssistant } from './types';
 
 import de from './translation/de.json';
 import en from './translation/en.json';
+import es from './translation/es.json';
 import fr from './translation/fr.json';
 import it from './translation/it.json';
+import nl from './translation/nl.json';
 
 const translations = {
   de,
   en,
+  es,
   fr,
   it,
+  nl,
 };
 
 interface TranslationObject {

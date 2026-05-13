@@ -24,20 +24,21 @@ A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive w
 - **Reliability** — Extensive test suite covering card logic, URL generation, and the configuration editor.
 - **Pressure isolines** toggle (disabled automatically for radar/satellite)
 - **Aspect ratio** or fixed pixel height for flexible layout. Maintains map and forecast dimensions seamlessly without layout shifts.
-- **Fully translated** — English, French, German, and Italian
 
 ## Localization
 
+- Dutch
 - English
 - French
 - German
 - Italian
+- Spanish
 
 <details>
 <summary>Contributing Translations</summary>
 
 1. Fork the repository on GitHub.
-2. Copy `src/translation/en.json` and rename it to your language code (e.g. `es.json`).
+2. Copy `src/translation/en.json` and rename it to your language code (e.g. `pt.json`).
 3. Translate all values.
 4. Submit a pull request.
 

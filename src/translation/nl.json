@@ -1,0 +1,130 @@
+{
+  "common": {
+    "description": "Een Lovelace-kaart voor Windy Kaart en Verwachting."
+  },
+  "card": {
+    "map": "Kaart",
+    "forecast": "Verwachting",
+    "reset_map": "Kaart resetten",
+    "enable_interaction": "Interactie inschakelen",
+    "disable_interaction": "Interactie uitschakelen"
+  },
+  "editor": {
+    "sections": {
+      "view": "Weergave",
+      "location": "Locatie",
+      "layer": "Kaartlaag",
+      "forecast": "Verwachtingsgegevens",
+      "units": "Eenheden",
+      "display": "Weergaveopties"
+    },
+    "labels": {
+      "title": "Titel (optioneel)",
+      "latitude": "Breedtegraad",
+      "longitude": "Lengtegraad",
+      "location": "Locatie entiteit (Zone of Device Tracker, overschrijft lat/lon)",
+      "zoom": "Zoomniveau (3-11)",
+      "default_mode": "Standaardmodus",
+      "overlay_entity": "Laag entiteit (status wordt gebruikt als laag)",
+      "overlay": "Laag (standaard)",
+      "level": "Hoogte",
+      "product": "Verwachtingsmodel",
+      "forecast_product": "Aanbieder van gegevens",
+      "aspect_ratio": "Beeldverhouding",
+      "height": "Vaste hoogte (px)",
+      "metric_temp": "Temperatuur",
+      "metric_rain": "Regen / Sneeuw",
+      "metric_wind": "Wind",
+      "show_marker": "Markering weergeven",
+      "show_spot": "Spotverwachting toevoegen",
+      "show_pressure": "Druk isobaren",
+      "hide_message": "Promotietekst verbergen",
+      "no_padding": "Padding en rand verwijderen (volledige breedte)",
+      "static_map": "Statische kaart (interacties uitschakelen)",
+      "autoplay": "Kaartanimatie automatisch afspelen"
+    },
+    "options": {
+      "default_mode": {
+        "map": "Kaart",
+        "forecast": "Verwachting",
+        "map_only": "Alleen kaart (zonder schakelaar)",
+        "forecast_only": "Alleen verwachting (zonder schakelaar)"
+      },
+      "aspect_ratio": {
+        "none": "Geen (gebruik vaste hoogte)"
+      },
+      "overlay": {
+        "radar": "Weerradar",
+        "satellite": "Satelliet",
+        "wind": "Wind",
+        "rain": "Regen, onweer",
+        "temp": "Temperatuur",
+        "clouds": "Wolken",
+        "waves": "Golven",
+        "raincum": "Regenaccumulatie",
+        "gusts": "Windstoten",
+        "windcum": "Windaccumulatie",
+        "cat": "Clear air turbulence (CAT)",
+        "icing": "Gevaar voor ijsafzetting",
+        "snow": "Nieuwe sneeuw",
+        "snowdepth": "Sneeuwdiepte",
+        "ptype": "Neerslagtype",
+        "thunder": "Onweersbuien",
+        "dewpoint": "Dauwpunt",
+        "rh": "Luchtvochtigheid",
+        "freezing": "Vorsthoogte",
+        "wetbulb": "Natteboltemperatuur",
+        "solarpower": "Zonne-energie",
+        "uv": "UV-index",
+        "hclouds": "Hoge wolken",
+        "mclouds": "Middelbare wolken",
+        "lclouds": "Lage wolken",
+        "fog": "Mist",
+        "cloudtop": "Wolkentop",
+        "cloudbase": "Wolkenbasis",
+        "visibility": "Zichtbaarheid",
+        "cap": "CAPE-index",
+        "thermals": "Thermiek",
+        "swell": "Deining",
+        "swell2": "Deining 2",
+        "swell3": "Deining 3",
+        "wwave": "Windgolven",
+        "sst": "Zeetemperatuur",
+        "currents": "Stromingen",
+        "tidalcurrents": "Getijdenstromingen",
+        "no2": "NO2",
+        "pm25": "PM2.5",
+        "aerosol": "Aerosol",
+        "ozone": "Ozonlaag",
+        "so2": "SO2",
+        "surfaceozone": "Oppervlakte-ozon",
+        "co": "CO-concentratie",
+        "dust": "Stofmassa",
+        "pressure": "Druk",
+        "extreme": "Extreme weersverwachting",
+        "warnings": "Weerwaarschuwingen",
+        "drought": "Droogtemonitor",
+        "fire": "Brandgevaar"
+      },
+      "metrics": {
+        "default": "Standaard (Windy-instelling)"
+      },
+      "levels": {
+        "surface": "Oppervlakte (0m / 0ft)",
+        "100m": "100m / 330ft",
+        "950h": "950hPa – 600m / 2000ft",
+        "925h": "925hPa – 750m / 2500ft",
+        "900h": "900hPa – 900m / 3000ft",
+        "850h": "850hPa – 1500m / 5000ft",
+        "800h": "800hPa – 2000m / 6500ft",
+        "700h": "700hPa – 3000m / 10000ft",
+        "600h": "600hPa – 4200m / 14000ft",
+        "500h": "500hPa – 5500m / 18000ft",
+        "400h": "400hPa – 7000m / 23000ft",
+        "300h": "300hPa – 9000m / 30000ft",
+        "200h": "200hPa – 12000m / 39000ft",
+        "150h": "150hPa – 14000m / 46000ft"
+      }
+    }
+  }
+}

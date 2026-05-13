@@ -197,6 +197,24 @@ describe('WindyCard', () => {
     });
   });
 
+  describe('URL generation — autoplay', () => {
+    it('includes play param when autoplay is true', () => {
+      const card = makeCard({ overlay: 'wind', autoplay: true });
+      const src = getIframeSrc(card);
+      expect(src).toContain('&play=true');
+    });
+
+    it('omits play param when autoplay is false or absent', () => {
+      const card = makeCard({ overlay: 'wind', autoplay: false });
+      const src = getIframeSrc(card);
+      expect(src).not.toContain('&play=true');
+
+      const card2 = makeCard({ overlay: 'wind' });
+      const src2 = getIframeSrc(card2);
+      expect(src2).not.toContain('&play=true');
+    });
+  });
+
   describe('URL generation — location resolution', () => {
     it('uses explicit latitude/longitude', () => {
       const card = makeCard({ overlay: 'wind', latitude: 52.5, longitude: 13.4 });

@@ -40,7 +40,8 @@
       "show_pressure": "Isobares",
       "hide_message": "Masquer le texte promotionnel",
       "no_padding": "Supprimer le rembourrage et la bordure (pleine largeur)",
-      "static_map": "Carte statique (désactiver les interactions)"
+      "static_map": "Carte statique (désactiver les interactions)",
+      "autoplay": "Lecture automatique de l'animation"
     },
     "options": {
       "default_mode": {

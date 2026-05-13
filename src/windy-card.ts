@@ -382,11 +382,11 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const marker = this._config.show_marker ? `&detailLat=${lat}&detailLon=${lon}&marker=true` : '';
     const detail = this._config.show_spot ? `&detailLat=${lat}&detailLon=${lon}&detail=true` : '';
 
-    // Pressure incompatible with radar/satellite
     const pressure = this._config.show_pressure && !isRadarOrSatellite ? '&pressure=true' : '';
     const message = this._config.hide_message ? '&message=true' : '';
+    const autoplay = this._config.autoplay ? '&play=true' : '';
 
-    const url = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}&product=${product}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}`;
+    const url = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}&product=${product}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}${autoplay}`;
 
     return this._renderIframeWithWrapper(url, 450, 'Windy Map', true);
   }

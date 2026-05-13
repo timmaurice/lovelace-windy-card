@@ -550,6 +550,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
               title: localize(this.hass, 'component.windy-card.editor.sections.display'),
               schema: [
                 { name: 'static_map', selector: { boolean: {} } },
+                { name: 'autoplay', selector: { boolean: {} } },
                 { name: 'show_marker', selector: { boolean: {} } },
                 { name: 'show_spot', selector: { boolean: {} } },
                 ...(!isRadarOrSatellite ? [{ name: 'show_pressure', selector: { boolean: {} } } as HaFormSchema] : []),

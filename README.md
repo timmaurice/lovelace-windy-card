@@ -119,6 +119,7 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 | Name            | Type    | Default | Description                                                                         |
 | --------------- | ------- | ------- | ----------------------------------------------------------------------------------- |
 | `static_map`    | boolean | `false` | Disable map interaction. Adds a high-contrast toggle button to the vertical toolbar |
+| `autoplay`      | boolean | `false` | Automatically play the map animation                                                |
 | `show_marker`   | boolean | `false` | Show a pin at the detail location                                                   |
 | `show_spot`     | boolean | `false` | Show the spot forecast popup                                                        |
 | `show_pressure` | boolean | `false` | Overlay pressure isolines (not available for radar/satellite)                       |

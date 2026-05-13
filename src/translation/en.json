@@ -40,7 +40,8 @@
       "show_pressure": "Pressure isolines",
       "hide_message": "Hide promotional text",
       "no_padding": "Remove padding and border (full width)",
-      "static_map": "Static map (disable interactions)"
+      "static_map": "Static map (disable interactions)",
+      "autoplay": "Autoplay map animation"
     },
     "options": {
       "default_mode": {

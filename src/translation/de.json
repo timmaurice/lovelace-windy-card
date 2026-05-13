@@ -40,7 +40,8 @@
       "show_pressure": "Isobaren anzeigen",
       "hide_message": "Werbung ausblenden",
       "no_padding": "Padding und Rahmen entfernen (volle Breite)",
-      "static_map": "Statische Karte (Interaktionen deaktivieren)"
+      "static_map": "Statische Karte (Interaktionen deaktivieren)",
+      "autoplay": "Kartenanimation automatisch abspielen"
     },
     "options": {
       "default_mode": {

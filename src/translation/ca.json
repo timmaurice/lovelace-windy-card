@@ -1,0 +1,131 @@
+{
+  "common": {
+    "description": "Una targeta Lovelace per al mapa i la previsió de Windy."
+  },
+  "card": {
+    "map": "Mapa",
+    "forecast": "Previsió",
+    "reset_map": "Restablir el mapa",
+    "enable_interaction": "Activar la interacció",
+    "disable_interaction": "Desactivar la interacció"
+  },
+  "editor": {
+    "sections": {
+      "view": "Vista",
+      "location": "Ubicació",
+      "layer": "Capa del mapa",
+      "forecast": "Dades de previsió",
+      "units": "Unitats",
+      "display": "Opcions de visualització"
+    },
+    "labels": {
+      "title": "Títol (opcional)",
+      "latitude": "Latitud",
+      "longitude": "Longitud",
+      "location": "Entitat d'ubicació (zona o rastrejador de dispositiu, substitueix lat/lon)",
+      "update_interval": "Interval d'actualització (segons, opcional)",
+      "zoom": "Nivell de zoom (3-11)",
+      "default_mode": "Mode predeterminat",
+      "overlay_entity": "Entitat de capa (l'estat s'utilitza com a capa, substitueix el desplegable)",
+      "overlay": "Capa (per defecte)",
+      "level": "Altitud",
+      "product": "Model de previsió",
+      "forecast_product": "Proveïdor de dades",
+      "aspect_ratio": "Relació d'aspecte",
+      "height": "Alçada fixa (px)",
+      "metric_temp": "Temperatura",
+      "metric_rain": "Pluja / Neu",
+      "metric_wind": "Vent",
+      "show_marker": "Mostrar marcador",
+      "show_spot": "Incloure previsió puntual",
+      "show_pressure": "Isòbares de pressió",
+      "hide_message": "Ocultar text promocional",
+      "no_padding": "Eliminar el farciment i la vora (amplada completa)",
+      "static_map": "Mapa estàtic (desactivar interaccions)",
+      "autoplay": "Reproduir automàticament l'animació del mapa"
+    },
+    "options": {
+      "default_mode": {
+        "map": "Mapa",
+        "forecast": "Previsió",
+        "map_only": "Només mapa (sense commutador)",
+        "forecast_only": "Només previsió (sense commutador)"
+      },
+      "aspect_ratio": {
+        "none": "Cap (usar alçada fixa)"
+      },
+      "overlay": {
+        "radar": "Radar meteorològic",
+        "satellite": "Satèl·lit",
+        "wind": "Vent",
+        "rain": "Pluja, trons",
+        "temp": "Temperatura",
+        "clouds": "Núvols",
+        "waves": "Onades",
+        "raincum": "Acumulació de pluja",
+        "gusts": "Ratxes de vent",
+        "windcum": "Acumulació de vent",
+        "cat": "Turbulència d'aire clar (CAT)",
+        "icing": "Gravetat del gel",
+        "snow": "Neu nova",
+        "snowdepth": "Profunditat de la neu",
+        "ptype": "Tipus de precipitació",
+        "thunder": "Tempestes",
+        "dewpoint": "Punt de rosada",
+        "rh": "Humitat",
+        "freezing": "Altitud de congelació",
+        "wetbulb": "Temp. de termòmetre humit",
+        "solarpower": "Energia solar",
+        "uv": "Índex UV",
+        "hclouds": "Núvols alts",
+        "mclouds": "Núvols mitjans",
+        "lclouds": "Núvols baixos",
+        "fog": "Boira",
+        "cloudtop": "Cims dels núvols",
+        "cloudbase": "Base dels núvols",
+        "visibility": "Visibilitat",
+        "cap": "Índex CAPE",
+        "thermals": "Tèrmiques",
+        "swell": "Onada de fons",
+        "swell2": "Onada de fons 2",
+        "swell3": "Onada de fons 3",
+        "wwave": "Onades de vent",
+        "sst": "Temperatura del mar",
+        "currents": "Corrents",
+        "tidalcurrents": "Corrents de marea",
+        "no2": "NO2",
+        "pm25": "PM2.5",
+        "aerosol": "Aerosol",
+        "ozone": "Capa d'ozó",
+        "so2": "SO2",
+        "surfaceozone": "Ozó superficial",
+        "co": "Concentració de CO",
+        "dust": "Massa de pols",
+        "pressure": "Pressió",
+        "extreme": "Previsió extrema",
+        "warnings": "Avisos meteorològics",
+        "drought": "Seguiment de la sequera",
+        "fire": "Perill d'incendi"
+      },
+      "metrics": {
+        "default": "Per defecte (configuració de Windy)"
+      },
+      "levels": {
+        "surface": "Surface (0m / 0ft)",
+        "100m": "100m / 330ft",
+        "950h": "950hPa – 600m / 2000ft",
+        "925h": "925hPa – 750m / 2500ft",
+        "900h": "900hPa – 900m / 3000ft",
+        "850h": "850hPa – 1500m / 5000ft",
+        "800h": "800hPa – 2000m / 6500ft",
+        "700h": "700hPa – 3000m / 10000ft",
+        "600h": "600hPa – 4200m / 14000ft",
+        "500h": "500hPa – 5500m / 18000ft",
+        "400h": "400hPa – 7000m / 23000ft",
+        "300h": "300hPa – 9000m / 30000ft",
+        "200h": "200hPa – 12000m / 39000ft",
+        "150h": "150hPa – 14000m / 46000ft"
+      }
+    }
+  }
+}

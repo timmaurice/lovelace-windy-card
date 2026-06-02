@@ -77,11 +77,12 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 ### Location
 
-| Name        | Type   | Default     | Description                                                               |
-| ----------- | ------ | ----------- | ------------------------------------------------------------------------- |
-| `location`  | string | —           | HA zone or device_tracker entity to use as map center (overrides lat/lon) |
-| `latitude`  | number | HA location | Map center latitude                                                       |
-| `longitude` | number | HA location | Map center longitude                                                      |
+| Name              | Type   | Default        | Description                                                                                                           |
+| ----------------- | ------ | -------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `location`        | string | —              | HA zone or device_tracker entity to use as map center (overrides lat/lon)                                             |
+| `latitude`        | number | HA location    | Map center latitude                                                                                                   |
+| `longitude`       | number | HA location    | Map center longitude                                                                                                  |
+| `update_interval` | number | `0` (disabled) | Throttling interval in seconds to rate-limit map/forecast updates caused by frequently changing states or coordinates |
 
 ### Map Layer
 

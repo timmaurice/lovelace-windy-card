@@ -15,6 +15,14 @@ export class WindyCard extends LitElement implements LovelaceCard {
   @state() private _config!: WindyCardConfig;
   @state() private _mode: ViewMode = 'map';
   @state() private _isStatic: boolean = false;
+  @state() private _mapUrl: string = '';
+  @state() private _forecastUrl: string = '';
+
+  private _lastUpdateTime: number = 0;
+  private _throttleTimer?: ReturnType<typeof setTimeout>;
+  private _pendingMapUrl: string = '';
+  private _pendingForecastUrl: string = '';
+  private _bypassThrottle: boolean = false;
 
   public setConfig(config: WindyCardConfig): void {
     if (!config) {
@@ -34,6 +42,66 @@ export class WindyCard extends LitElement implements LovelaceCard {
     }
 
     this._isStatic = !!newConfig.static_map;
+    this._bypassThrottle = true;
+    this._updateUrls(true);
+  }
+
+  public disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this._throttleTimer) {
+      clearTimeout(this._throttleTimer);
+      this._throttleTimer = undefined;
+    }
+  }
+
+  protected willUpdate(changedProperties: Map<string | number | symbol, unknown>): void {
+    super.willUpdate(changedProperties);
+
+    if (changedProperties.has('hass') || changedProperties.has('_config') || this._bypassThrottle) {
+      this._updateUrls(this._bypassThrottle);
+      this._bypassThrottle = false;
+    }
+  }
+
+  private _updateUrls(force: boolean = false): void {
+    const targetMapUrl = this._computeMapUrl();
+    const targetForecastUrl = this._computeForecastUrl();
+
+    if (targetMapUrl !== this._mapUrl || targetForecastUrl !== this._forecastUrl) {
+      const updateInterval = this._config?.update_interval ?? 0;
+      if (updateInterval <= 0 || force || !this._mapUrl) {
+        this._mapUrl = targetMapUrl;
+        this._forecastUrl = targetForecastUrl;
+        this._lastUpdateTime = Date.now();
+        if (this._throttleTimer) {
+          clearTimeout(this._throttleTimer);
+          this._throttleTimer = undefined;
+        }
+      } else {
+        const now = Date.now();
+        const timeSinceLastUpdate = now - this._lastUpdateTime;
+        this._pendingMapUrl = targetMapUrl;
+        this._pendingForecastUrl = targetForecastUrl;
+
+        if (timeSinceLastUpdate >= updateInterval * 1000) {
+          this._mapUrl = targetMapUrl;
+          this._forecastUrl = targetForecastUrl;
+          this._lastUpdateTime = now;
+          if (this._throttleTimer) {
+            clearTimeout(this._throttleTimer);
+            this._throttleTimer = undefined;
+          }
+        } else if (!this._throttleTimer) {
+          const remaining = updateInterval * 1000 - timeSinceLastUpdate;
+          this._throttleTimer = setTimeout(() => {
+            this._mapUrl = this._pendingMapUrl;
+            this._forecastUrl = this._pendingForecastUrl;
+            this._lastUpdateTime = Date.now();
+            this._throttleTimer = undefined;
+          }, remaining);
+        }
+      }
+    }
   }
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
@@ -326,7 +394,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
     `;
   }
 
-  private _renderMap() {
+  private _computeMapUrl(): string {
     const { lat, lon } = this._getLocation();
 
     // Zoom limits 3-11
@@ -386,21 +454,25 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const message = this._config.hide_message ? '&message=true' : '';
     const autoplay = this._config.autoplay ? '&play=true' : '';
 
-    const url = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}&product=${product}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}${autoplay}`;
-
-    return this._renderIframeWithWrapper(url, 450, 'Windy Map', true);
+    return `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}&product=${product}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}${autoplay}`;
   }
 
-  private _renderForecast() {
+  private _renderMap() {
+    return this._renderIframeWithWrapper(this._mapUrl, 450, 'Windy Map', true);
+  }
+
+  private _computeForecastUrl(): string {
     const { lat, lon } = this._getLocation();
     const metricTemp = this._config.metric_temp ?? 'default';
     const metricRain = this._config.metric_rain ?? 'default';
     const metricWind = this._config.metric_wind ?? 'default';
     const product = this._config.forecast_product ?? this._config.product ?? 'ecmwf';
 
-    const url = `https://embed.windy.com/embed.html?type=forecast&location=coordinates&detail=true&detailLat=${lat}&detailLon=${lon}&metricTemp=${metricTemp}&metricRain=${metricRain}&metricWind=${metricWind}&product=${product}`;
+    return `https://embed.windy.com/embed.html?type=forecast&location=coordinates&detail=true&detailLat=${lat}&detailLon=${lon}&metricTemp=${metricTemp}&metricRain=${metricRain}&metricWind=${metricWind}&product=${product}`;
+  }
 
-    return this._renderIframeWithWrapper(url, 185, 'Windy Forecast', false);
+  private _renderForecast() {
+    return this._renderIframeWithWrapper(this._forecastUrl, 185, 'Windy Forecast', false);
   }
 
   static styles = unsafeCSS(cardStyles);

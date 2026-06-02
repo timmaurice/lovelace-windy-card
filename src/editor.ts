@@ -125,6 +125,10 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
               { name: 'longitude', selector: { number: { mode: 'box', step: 'any' } } },
             ],
           },
+          {
+            name: 'update_interval',
+            selector: { number: { mode: 'box', min: 0, unit_of_measurement: 's' } },
+          },
         ],
       },
 

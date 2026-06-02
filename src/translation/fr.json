@@ -23,6 +23,7 @@
       "latitude": "Latitude",
       "longitude": "Longitude",
       "location": "Entité de localisation (Zone ou Suivi d'appareil, remplace lat/lon)",
+      "update_interval": "Intervalle de mise à jour (secondes, facultatif)",
       "zoom": "Niveau de zoom (3-11)",
       "default_mode": "Mode par défaut",
       "overlay_entity": "Entité de couche (l'état est utilisé comme couche, remplace la liste déroulante)",

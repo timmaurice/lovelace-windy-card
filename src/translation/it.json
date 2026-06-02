@@ -23,6 +23,7 @@
       "latitude": "Latitudine",
       "longitude": "Longitudine",
       "location": "Entità posizione (Zona o Device Tracker, sovrascrive lat/lon)",
+      "update_interval": "Intervallo di aggiornamento (secondi, opzionale)",
       "zoom": "Livello di zoom (3-11)",
       "default_mode": "Modalità predefinita",
       "overlay_entity": "Entità livello (lo stato viene usato come livello, sovrascrive il menu)",

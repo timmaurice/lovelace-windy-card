@@ -23,6 +23,7 @@
       "latitude": "Breitengrad",
       "longitude": "Längengrad",
       "location": "Standortentität (Zone oder Device Tracker, überschreibt Lat/Lon)",
+      "update_interval": "Aktualisierungsintervall (Sekunden, optional)",
       "zoom": "Zoomstufe (3-11)",
       "default_mode": "Standard-Modus",
       "overlay_entity": "Ebenen-Entität (Zustand wird als Ebene verwendet, überschreibt Dropdown)",

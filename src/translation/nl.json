@@ -23,6 +23,7 @@
       "latitude": "Breedtegraad",
       "longitude": "Lengtegraad",
       "location": "Locatie entiteit (Zone of Device Tracker, overschrijft lat/lon)",
+      "update_interval": "Update-interval (seconden, optioneel)",
       "zoom": "Zoomniveau (3-11)",
       "default_mode": "Standaardmodus",
       "overlay_entity": "Laag entiteit (status wordt gebruikt als laag)",

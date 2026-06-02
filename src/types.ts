@@ -92,6 +92,7 @@ export interface WindyCardConfig extends LovelaceCardConfig {
   no_padding?: boolean;
   static_map?: boolean;
   autoplay?: boolean;
+  update_interval?: number;
 }
 
 export interface HaFormSchema {

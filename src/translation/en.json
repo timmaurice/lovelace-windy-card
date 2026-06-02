@@ -23,6 +23,7 @@
       "latitude": "Latitude",
       "longitude": "Longitude",
       "location": "Location entity (Zone or Device Tracker, overrides lat/lon)",
+      "update_interval": "Update Interval (seconds, optional)",
       "zoom": "Zoom level (3-11)",
       "default_mode": "Default Mode",
       "overlay_entity": "Layer entity (state used as layer, overrides dropdown)",

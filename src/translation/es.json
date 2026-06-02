@@ -23,6 +23,7 @@
       "latitude": "Latitud",
       "longitude": "Longitud",
       "location": "Entidad de ubicación (Zona o rastreador, anula lat/lon)",
+      "update_interval": "Intervalo de actualización (segundos, opcional)",
       "zoom": "Nivel de zoom (3-11)",
       "default_mode": "Modo predeterminado",
       "overlay_entity": "Entidad de capa (el estado se usa como capa)",

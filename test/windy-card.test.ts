@@ -475,4 +475,125 @@ describe('WindyCard', () => {
       expect(values).toContain('mdi:lock');
     });
   });
+
+  describe('Throttling & Refresh Frequency', () => {
+    it('applies URL updates immediately on initial load', () => {
+      const card = makeCard({ update_interval: 5, latitude: 48.0, longitude: 11.0 });
+      const src = getIframeSrc(card);
+      expect(src).toContain('lat=48');
+      expect(src).toContain('lon=11');
+    });
+
+    it('throttles subsequent updates and triggers trailing edge', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ update_interval: 5, latitude: 48.0, longitude: 11.0 });
+
+      // Simulate a change in hass (e.g. coordinates updated)
+      const hassWithNewLocation = {
+        ...mockHass,
+        states: {
+          'zone.home': {
+            attributes: { latitude: 53.0, longitude: 9.0 },
+          },
+        },
+      };
+
+      // Set config to track zone.home so coordinate changes can trigger updates
+      card.setConfig({
+        type: 'custom:windy-card',
+        update_interval: 5,
+        location: 'zone.home',
+      });
+      // Force initial load of zone.home
+      card.hass = hassWithNewLocation as unknown as typeof card.hass;
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      let src = getIframeSrc(card);
+      expect(src).toContain('lat=53');
+      expect(src).toContain('lon=9');
+
+      // Now update the zone attributes to simulate movement (first update within throttle window)
+      hassWithNewLocation.states['zone.home'].attributes = { latitude: 54.0, longitude: 10.0 };
+      card.hass = { ...hassWithNewLocation } as unknown as typeof card.hass;
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      // The URL should NOT change yet (still lat=53 lon=9) because we are throttled
+      src = getIframeSrc(card);
+      expect(src).toContain('lat=53');
+      expect(src).toContain('lon=9');
+
+      // Another change within throttle window
+      hassWithNewLocation.states['zone.home'].attributes = { latitude: 55.0, longitude: 11.0 };
+      card.hass = { ...hassWithNewLocation } as unknown as typeof card.hass;
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      // Still should not have changed
+      src = getIframeSrc(card);
+      expect(src).toContain('lat=53');
+      expect(src).toContain('lon=9');
+
+      // Fast-forward time by 5 seconds (5000ms) to trigger trailing edge
+      vi.advanceTimersByTime(5000);
+
+      // Now it should have updated to the last queued coordinates (lat=55 lon=11)
+      src = getIframeSrc(card);
+      expect(src).toContain('lat=55');
+      expect(src).toContain('lon=11');
+
+      vi.useRealTimers();
+    });
+
+    it('bypasses throttle on config change', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ update_interval: 5, latitude: 48.0, longitude: 11.0 });
+
+      // Change coordinates through config
+      card.setConfig({
+        type: 'custom:windy-card',
+        update_interval: 5,
+        latitude: 52.0,
+        longitude: 13.0,
+      });
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      // Should be updated immediately even within the 5s window
+      const src = getIframeSrc(card);
+      expect(src).toContain('lat=52');
+      expect(src).toContain('lon=13');
+
+      vi.useRealTimers();
+    });
+
+    it('cancels throttle timer on disconnectedCallback', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ update_interval: 5, location: 'zone.home' });
+      const hassWithNewLocation = {
+        ...mockHass,
+        states: {
+          'zone.home': {
+            attributes: { latitude: 53.0, longitude: 9.0 },
+          },
+        },
+      };
+      card.hass = hassWithNewLocation as unknown as typeof card.hass;
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      // Trigger a throttled update
+      hassWithNewLocation.states['zone.home'].attributes = { latitude: 54.0, longitude: 10.0 };
+      card.hass = { ...hassWithNewLocation } as unknown as typeof card.hass;
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      // Verify timer is set
+      const timer = (card as unknown as { _throttleTimer?: ReturnType<typeof setTimeout> })._throttleTimer;
+      expect(timer).toBeDefined();
+
+      // Disconnect the card
+      card.disconnectedCallback();
+
+      // Timer should be cleared
+      expect((card as unknown as { _throttleTimer?: ReturnType<typeof setTimeout> })._throttleTimer).toBeUndefined();
+
+      vi.useRealTimers();
+    });
+  });
 });

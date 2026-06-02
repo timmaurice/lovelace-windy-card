@@ -33,6 +33,7 @@ A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive w
 - German
 - Italian
 - Spanish
+- Catalan
 
 <details>
 <summary>Contributing Translations</summary>

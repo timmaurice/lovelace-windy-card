@@ -1,5 +1,6 @@
 import { HomeAssistant } from './types';
 
+import ca from './translation/ca.json';
 import de from './translation/de.json';
 import en from './translation/en.json';
 import es from './translation/es.json';
@@ -8,6 +9,7 @@ import it from './translation/it.json';
 import nl from './translation/nl.json';
 
 const translations = {
+  ca,
   de,
   en,
   es,

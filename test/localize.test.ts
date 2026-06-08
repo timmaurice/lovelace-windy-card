@@ -24,6 +24,11 @@ describe('localize()', () => {
     expect(result).toBe('Karte');
   });
 
+  it('returns Catalan translation for a known key', () => {
+    const result = localize(mockHass('ca'), 'component.windy-card.card.map');
+    expect(result).toBe('Mapa');
+  });
+
   it('falls back to English for an unknown language', () => {
     const result = localize(mockHass('xx'), 'component.windy-card.card.map');
     expect(result).toBe('Map');

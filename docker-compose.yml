@@ -1,6 +1,7 @@
+name: windy-card-test
 services:
   homeassistant:
-    container_name: homeassistant
+    container_name: ha-windy-card-test
     image: homeassistant/home-assistant:stable
     volumes:
       - ./ha-config:/config

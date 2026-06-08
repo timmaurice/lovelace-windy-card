@@ -119,6 +119,18 @@ describe('WindyCard', () => {
       expect(src).toContain('product=gfs');
     });
 
+    it('includes product for wind overlay (UKV)', () => {
+      const card = makeCard({ overlay: 'wind', product: 'ukv' });
+      const src = getIframeSrc(card);
+      expect(src).toContain('product=ukv');
+    });
+
+    it('includes product for wind overlay (ACCESS)', () => {
+      const card = makeCard({ overlay: 'wind', product: 'bomAccess' });
+      const src = getIframeSrc(card);
+      expect(src).toContain('product=bomAccess');
+    });
+
     it('defaults product to ecmwf', () => {
       const card = makeCard({ overlay: 'wind' });
       const src = getIframeSrc(card);
@@ -131,6 +143,18 @@ describe('WindyCard', () => {
       const card = makeCard({ forecast_product: 'iconD2' });
       const src = getForecastIframeSrc(card);
       expect(src).toContain('product=iconD2');
+    });
+
+    it('uses forecast_product when provided (UKV)', () => {
+      const card = makeCard({ forecast_product: 'ukv' });
+      const src = getForecastIframeSrc(card);
+      expect(src).toContain('product=ukv');
+    });
+
+    it('uses forecast_product when provided (ACCESS)', () => {
+      const card = makeCard({ forecast_product: 'bomAccess' });
+      const src = getForecastIframeSrc(card);
+      expect(src).toContain('product=bomAccess');
     });
 
     it('falls back to product when forecast_product is absent', () => {
@@ -350,10 +374,11 @@ describe('WindyCard', () => {
       expect(window.customCards.some((c) => c.type === 'windy-card')).toBe(true);
     });
 
-    it('registered card has name and description', () => {
+    it('registered card has name, description, and documentationURL', () => {
       const entry = window.customCards.find((c) => c.type === 'windy-card');
       expect(entry?.name).toBe('Windy Card');
       expect(entry?.description).toBeTruthy();
+      expect(entry?.documentationURL).toBe('https://github.com/timmaurice/lovelace-windy-card');
     });
   });
 

@@ -498,5 +498,6 @@ window.customCards.push({
   type: ELEMENT_NAME,
   name: 'Windy Card',
   description: localize(undefined, 'component.windy-card.common.description'),
+  documentationURL: 'https://github.com/timmaurice/lovelace-windy-card',
   preview: true,
 });

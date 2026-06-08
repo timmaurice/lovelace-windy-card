@@ -1,0 +1,85 @@
+name: Check Windy Embed Version
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight UTC
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run version check
+        id: check
+        run: |
+          OUTPUT=$(node scripts/check-windy-version.js)
+          echo "$OUTPUT"
+
+          # Parse outputs
+          if echo "$OUTPUT" | grep -q "::set-output name=updated::true"; then
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+            
+            # Extract values from output lines
+            VERSION=$(echo "$OUTPUT" | grep "::set-output name=version::" | sed 's/::set-output name=version:://')
+            ASSETS=$(echo "$OUTPUT" | grep "::set-output name=assets::" | sed 's/::set-output name=assets:://')
+            BUILD=$(echo "$OUTPUT" | grep "::set-output name=build::" | sed 's/::set-output name=build:://')
+            
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "assets=$ASSETS" >> "$GITHUB_OUTPUT"
+            echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+          else
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Format snapshot and create PR
+        if: steps.check.outputs.updated == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Format the snapshot file using Prettier
+          npx prettier --write scripts/windy-embed-snapshot.js
+
+          # Configure Git
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Create a new branch
+          BRANCH_NAME="windy-update-${{ steps.check.outputs.assets }}"
+          git checkout -b "$BRANCH_NAME"
+
+          # Stage and commit the changes
+          git add scripts/windy-embed-version.json scripts/windy-embed-snapshot.js
+          git commit -m "chore(deps): update Windy embed script to ${{ steps.check.outputs.version }}"
+
+          # Push the branch
+          git push origin "$BRANCH_NAME" --force
+
+          # Create the Pull Request using GitHub CLI
+          gh pr create \
+            --title "chore(deps): Windy embed script update detected (${{ steps.check.outputs.version }})" \
+            --body "A new version of the Windy embed script has been detected online.
+            
+            - **Version:** ${{ steps.check.outputs.version }}
+            - **Build Date:** ${{ steps.check.outputs.build }}
+            - **Assets Path:** ${{ steps.check.outputs.assets }}
+            
+            Please review the file changes in this Pull Request to check if there are any updates to available layers, products, or parameter schemas." \
+            --base main \
+            --head "$BRANCH_NAME"

@@ -86,19 +86,19 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 ### Map Layer
 
-| Name             | Type   | Default   | Description                                                            |
-| ---------------- | ------ | --------- | ---------------------------------------------------------------------- |
-| `overlay_entity` | string | —         | HA entity whose state is used as the map overlay (overrides `overlay`) |
-| `overlay`        | string | `wind`    | Weather layer (see full list below)                                    |
-| `level`          | string | `surface` | Altitude level (only for compatible layers)                            |
-| `product`        | string | `ecmwf`   | Forecast model (hidden for radar/satellite)                            |
-| `zoom`           | number | `5`       | Zoom level (3–11)                                                      |
+| Name             | Type   | Default   | Description                                                                                                                                                        |
+| ---------------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `overlay_entity` | string | —         | HA entity whose state is used as the map overlay (overrides `overlay`)                                                                                             |
+| `overlay`        | string | `wind`    | Weather layer to show on the map (see [Available Map Layers](#available-map-layers-overlay)).                                                                      |
+| `level`          | string | `surface` | Altitude level (only for compatible layers)                                                                                                                        |
+| `product`        | string | `ecmwf`   | Forecast model to display on the map (see [Available Forecast Models](#available-forecast-models-product--forecast_product)). Hidden for radar/satellite overlays. |
+| `zoom`           | number | `5`       | Zoom level (3–11)                                                                                                                                                  |
 
 ### Forecast Options
 
-| Name               | Type   | Default | Description                                                                  |
-| ------------------ | ------ | ------- | ---------------------------------------------------------------------------- |
-| `forecast_product` | string | `ecmwf` | Data provider for the spot forecast widget (e.g., AROME, ICON-EU, METEOBLUE) |
+| Name               | Type   | Default | Description                                                                                                                         |
+| ------------------ | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `forecast_product` | string | `ecmwf` | Data provider for the spot forecast widget (see [Available Forecast Models](#available-forecast-models-product--forecast_product)). |
 
 ### View / Size
 
@@ -127,19 +127,132 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 | `show_pressure` | boolean | `false` | Overlay pressure isolines (not available for radar/satellite)                       |
 | `hide_message`  | boolean | `false` | Hide the Windy promotional message                                                  |
 
-### Available Layers (`overlay`)
+### Available Map Layers (`overlay`)
 
-**Core:** `wind`, `rain`, `temp`, `clouds`, `waves`, `raincum`, `gusts`, `windcum`, `cat`, `icing`, `radar`, `satellite`
+Below is the list of supported weather overlays for the `overlay` option:
 
-**Atmosphere:** `snow`, `snowdepth`, `ptype`, `thunder`, `dewpoint`, `rh`, `freezing`, `wetbulb`, `fog`, `cloudtop`, `cloudbase`, `visibility`, `cap`, `thermals`, `hclouds`, `mclouds`, `lclouds`
+<details>
+<summary>Core Layers (Radar, Satellite, Wind, Temp, Waves, etc.)</summary>
 
-**Solar & UV:** `solarpower`, `uv`
+| Value       | Label / Name               | Details                                               |
+| ----------- | -------------------------- | ----------------------------------------------------- |
+| `radar`     | Weather radar              | Real-time weather radar precipitation overlay         |
+| `satellite` | Satellite                  | Real-time high-resolution satellite overlay           |
+| `wind`      | Wind                       | Wind animations at selected altitudes                 |
+| `rain`      | Rain, thunder              | Rain, snow, wet-bulb precipitation with thunderstorms |
+| `temp`      | Temperature                | Air temperature at selected altitudes                 |
+| `clouds`    | Clouds                     | Total cloud cover percentage                          |
+| `waves`     | Waves                      | Combined wind waves and swell height                  |
+| `raincum`   | Rain accumulation          | Accumulated precipitation over a selected timeframe   |
+| `gusts`     | Wind gusts                 | Maximum wind gust speed                               |
+| `windcum`   | Wind accumulation          | Accumulated wind run                                  |
+| `cat`       | Clear air turbulence (CAT) | Turbulence severity index for aviation                |
+| `icing`     | Icing severity             | Aviation ice accumulation index                       |
 
-**Ocean:** `swell`, `swell2`, `swell3`, `wwave`, `sst`, `currents`, `tidalcurrents`
+</details>
 
-**Air Quality:** `no2`, `pm25`, `aerosol`, `ozone`, `so2`, `surfaceozone`, `co`, `dust`
+<details>
+<summary>Atmosphere Layers (Snow, Humidity, Fog, Visibility, Storms, etc.)</summary>
 
-**Other:** `pressure`, `extreme`, `warnings`, `drought`, `fire`
+| Value        | Label / Name      | Details                                                              |
+| ------------ | ----------------- | -------------------------------------------------------------------- |
+| `snow`       | New snow          | Expected new snowfall depth accumulation                             |
+| `snowdepth`  | Snow depth        | Total snow cover depth                                               |
+| `ptype`      | Precip. type      | Precipitation classification type (rain, freezing rain, sleet, snow) |
+| `thunder`    | Thunderstorms     | Lighting strikes density indicator                                   |
+| `dewpoint`   | Dew point         | Atmospheric dew point temperature                                    |
+| `rh`         | Humidity          | Relative humidity percentage                                         |
+| `freezing`   | Freezing altitude | Zero-degree isotherm elevation level                                 |
+| `wetbulb`    | Wet-bulb temp.    | Thermodynamic wet-bulb temperature                                   |
+| `fog`        | Fog               | Ground level fog density indicator                                   |
+| `cloudtop`   | Cloud tops        | Top altitude of clouds                                               |
+| `cloudbase`  | Cloud base        | Low-level cloud base altitude                                        |
+| `visibility` | Visibility        | Ground horizontal visibility distance                                |
+| `cap`        | CAPE Index        | Convective Available Potential Energy for storm instability          |
+| `thermals`   | Thermals          | Thermal updraft speed and cloud base for soaring                     |
+| `hclouds`    | High clouds       | High-altitude cloud cover percentage                                 |
+| `mclouds`    | Medium clouds     | Mid-altitude cloud cover percentage                                  |
+| `lclouds`    | Low clouds        | Low-altitude cloud cover percentage                                  |
+
+</details>
+
+<details>
+<summary>Solar & UV Layers (Solar Power, UV Index)</summary>
+
+| Value        | Label / Name | Details                               |
+| ------------ | ------------ | ------------------------------------- |
+| `solarpower` | Solar power  | Clear-sky downward solar radiation    |
+| `uv`         | UV Index     | Ultraviolet radiation intensity index |
+
+</details>
+
+<details>
+<summary>Ocean Layers (Swell, Wind Waves, Currents, Sea Temp)</summary>
+
+| Value           | Label / Name    | Details                                   |
+| --------------- | --------------- | ----------------------------------------- |
+| `swell`         | Swell           | Primary swell wave height and direction   |
+| `swell2`        | Swell 2         | Secondary swell wave height and direction |
+| `swell3`        | Swell 3         | Tertiary swell wave height and direction  |
+| `wwave`         | Wind waves      | Wind-generated local wave height          |
+| `sst`           | Sea temperature | Sea surface temperature (SST)             |
+| `currents`      | Currents        | Sea current speed and direction           |
+| `tidalcurrents` | Tidal currents  | Local tide-driven current animations      |
+
+</details>
+
+<details>
+<summary>Air Quality Layers (Particulates, Ozone, NO2, SO2, Dust, etc.)</summary>
+
+| Value          | Label / Name     | Details                                       |
+| -------------- | ---------------- | --------------------------------------------- |
+| `no2`          | NO2              | Nitrogen dioxide surface concentration        |
+| `pm25`         | PM2.5            | Fine particulate matter under 2.5 micrometers |
+| `aerosol`      | Aerosol          | Aerosol optical depth (AOD) at 550nm          |
+| `ozone`        | Ozone layer      | Total column ozone layer density              |
+| `so2`          | SO2              | Sulfur dioxide surface concentration          |
+| `surfaceozone` | Surface Ozone    | Ground-level ozone concentration              |
+| `co`           | CO concentration | Carbon monoxide surface concentration         |
+| `dust`         | Dust mass        | Total column atmospheric dust mass            |
+
+</details>
+
+<details>
+<summary>Other Layers (Pressure, Anomalies, Alerts, Drought, Fire)</summary>
+
+| Value      | Label / Name       | Details                                          |
+| ---------- | ------------------ | ------------------------------------------------ |
+| `pressure` | Pressure           | Sea-level atmospheric pressure isolines          |
+| `extreme`  | Extreme forecast   | EFI (Extreme Forecast Index) anomalies indicator |
+| `warnings` | Weather warnings   | Meteorological alerts overlay (CAP alerts)       |
+| `drought`  | Drought monitoring | Soil moisture anomaly indicator                  |
+| `fire`     | Fire danger        | Fire Weather Index (FWI) risk level              |
+
+</details>
+
+### Available Forecast Models (`product` / `forecast_product`)
+
+Below is the list of supported forecast models and data providers. Regional models automatically fall back to global models if the map center coordinates are outside their geographic coverage zone.
+
+<details>
+<summary>View available forecast models</summary>
+
+| Value       | Label / Name       | Coverage / Region    | Details                                                              |
+| ----------- | ------------------ | -------------------- | -------------------------------------------------------------------- |
+| `ecmwf`     | ECMWF              | Global               | European Centre for Medium-Range Weather Forecasts (Global standard) |
+| `gfs`       | GFS                | Global               | Global Forecast System (US NOAA standard)                            |
+| `icon`      | ICON               | Global               | German DWD model (Global resolution)                                 |
+| `iconEu`    | ICON-EU            | Europe               | German DWD model (European resolution)                               |
+| `iconD2`    | ICON-D2            | Germany & Alps       | German DWD model (Very high resolution local)                        |
+| `arome`     | AROME              | France & Alps        | Météo-France high-resolution regional model                          |
+| `aladin`    | ALADIN             | Central Europe       | ALADIN consortium high-resolution regional model                     |
+| `nems`      | METEOBLUE          | Global (Multi-model) | Swiss high-precision multi-model point forecast (Meteoblue)          |
+| `nam`       | NAM                | North America        | North American Mesoscale model (US NOAA regional)                    |
+| `hrrr`      | HRRR               | North America        | High-Resolution Rapid Refresh model (US NOAA local)                  |
+| `ukv`       | UKV                | United Kingdom       | UK Met Office high-resolution local model                            |
+| `bomAccess` | ACCESS (Australia) | Australia            | Bureau of Meteorology high-resolution local model                    |
+
+</details>
 
 ## Known Limitations
 

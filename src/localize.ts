@@ -7,6 +7,8 @@ import es from './translation/es.json';
 import fr from './translation/fr.json';
 import it from './translation/it.json';
 import nl from './translation/nl.json';
+import zh_Hans from './translation/zh-Hans.json';
+import zh_Hant from './translation/zh-Hant.json';
 
 const translations = {
   ca,
@@ -16,6 +18,12 @@ const translations = {
   fr,
   it,
   nl,
+  'zh-Hans': zh_Hans,
+  'zh-CN': zh_Hans,
+  zh: zh_Hans,
+  'zh-Hant': zh_Hant,
+  'zh-TW': zh_Hant,
+  'zh-HK': zh_Hant,
 };
 
 interface TranslationObject {

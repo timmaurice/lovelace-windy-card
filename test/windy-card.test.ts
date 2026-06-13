@@ -113,6 +113,18 @@ describe('WindyCard', () => {
       expect(src).toContain('product=&');
     });
 
+    it('omits product for case-insensitive satellite overlay', () => {
+      const card = makeCard({ overlay: 'Satellite' });
+      const src = getIframeSrc(card);
+      expect(src).toContain('product=&');
+    });
+
+    it('omits product for case-insensitive radar overlay', () => {
+      const card = makeCard({ overlay: 'Radar' });
+      const src = getIframeSrc(card);
+      expect(src).toContain('product=&');
+    });
+
     it('includes product for wind overlay', () => {
       const card = makeCard({ overlay: 'wind', product: 'gfs' });
       const src = getIframeSrc(card);

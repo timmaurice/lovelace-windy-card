@@ -169,11 +169,11 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
   /** Resolve overlay from entity state or explicit config value */
   private _getOverlay(): string {
-    let rawOverlay = this._config.overlay ?? 'wind';
+    let rawOverlay = (this._config.overlay ?? 'wind').toLowerCase();
     if (this._config.overlay_entity && this.hass?.states) {
       const entityState = this.hass.states[this._config.overlay_entity];
       if (entityState?.state) {
-        rawOverlay = entityState.state;
+        rawOverlay = entityState.state.toLowerCase();
       }
     }
 

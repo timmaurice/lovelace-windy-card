@@ -20,7 +20,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   }
 
   private _getSchema() {
-    const overlay = this._config.overlay || 'wind';
+    const overlay = (this._config.overlay || 'wind').toLowerCase();
     const isRadarOrSatellite = ['radar', 'satellite'].includes(overlay);
     const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'cat', 'icing', 'cap'].includes(overlay);
     const isForecastOnly = this._config.default_mode === 'forecast_only';

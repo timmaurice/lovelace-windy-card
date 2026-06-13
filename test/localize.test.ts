@@ -29,6 +29,16 @@ describe('localize()', () => {
     expect(result).toBe('Mapa');
   });
 
+  it('returns Simplified Chinese translation for a known key', () => {
+    const result = localize(mockHass('zh-Hans'), 'component.windy-card.card.map');
+    expect(result).toBe('地图');
+  });
+
+  it('returns Traditional Chinese translation for a known key', () => {
+    const result = localize(mockHass('zh-Hant'), 'component.windy-card.card.map');
+    expect(result).toBe('地圖');
+  });
+
   it('falls back to English for an unknown language', () => {
     const result = localize(mockHass('xx'), 'component.windy-card.card.map');
     expect(result).toBe('Map');

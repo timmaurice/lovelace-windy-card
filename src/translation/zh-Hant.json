@@ -1,0 +1,131 @@
+{
+  "common": {
+    "description": "用於 Windy 地圖和天氣預報的 Lovelace 卡片。"
+  },
+  "card": {
+    "map": "地圖",
+    "forecast": "天氣預報",
+    "reset_map": "重置地圖",
+    "enable_interaction": "啟用互動",
+    "disable_interaction": "禁用互動"
+  },
+  "editor": {
+    "sections": {
+      "view": "檢視",
+      "location": "位置",
+      "layer": "地圖圖層",
+      "forecast": "預報數據",
+      "units": "單位",
+      "display": "顯示選項"
+    },
+    "labels": {
+      "title": "標題 (選填)",
+      "latitude": "緯度",
+      "longitude": "經度",
+      "location": "位置實體 (區域或設備追蹤器，覆蓋經緯度)",
+      "update_interval": "更新間隔 (秒，選填)",
+      "zoom": "縮放層級 (3-11)",
+      "default_mode": "預設模式",
+      "overlay_entity": "圖層實體 (其狀態用作圖層，覆蓋下拉選單)",
+      "overlay": "圖層 (預設)",
+      "level": "海拔高度",
+      "product": "預報模型",
+      "forecast_product": "數據提供商",
+      "aspect_ratio": "寬高比",
+      "height": "固定高度 (像素)",
+      "metric_temp": "溫度",
+      "metric_rain": "雨 / 雪",
+      "metric_wind": "風速",
+      "show_marker": "顯示標記",
+      "show_spot": "包含單點預報",
+      "show_pressure": "等壓線",
+      "hide_message": "隱藏推廣文字",
+      "no_padding": "移除邊距和邊框 (全寬)",
+      "static_map": "靜態地圖 (禁用互動)",
+      "autoplay": "自動播放地圖動畫"
+    },
+    "options": {
+      "default_mode": {
+        "map": "地圖",
+        "forecast": "預報",
+        "map_only": "僅地圖 (無切換鍵)",
+        "forecast_only": "僅預報 (無切換鍵)"
+      },
+      "aspect_ratio": {
+        "none": "無 (使用固定高度)"
+      },
+      "overlay": {
+        "radar": "天氣雷達",
+        "satellite": "衛星雲圖",
+        "wind": "風",
+        "rain": "雨、雷暴",
+        "temp": "溫度",
+        "clouds": "云",
+        "waves": "浪高",
+        "raincum": "累計降雨",
+        "gusts": "陣風",
+        "windcum": "累計風力",
+        "cat": "晴空湍流 (CAT)",
+        "icing": "結冰嚴重程度",
+        "snow": "新雪",
+        "snowdepth": "積雪深度",
+        "ptype": "降水類型",
+        "thunder": "雷暴",
+        "dewpoint": "露點",
+        "rh": "濕度",
+        "freezing": "凍結高度",
+        "wetbulb": "濕球溫度",
+        "solarpower": "太陽能",
+        "uv": "紫外線指數",
+        "hclouds": "高雲",
+        "mclouds": "中雲",
+        "lclouds": "低雲",
+        "fog": "霧",
+        "cloudtop": "雲頂高度",
+        "cloudbase": "雲底高度",
+        "visibility": "能見度",
+        "cap": "對流可用位能 (CAPE)",
+        "thermals": "熱力上升氣流",
+        "swell": "湧浪",
+        "swell2": "湧浪 2",
+        "swell3": "湧浪 3",
+        "wwave": "風浪",
+        "sst": "海水溫度",
+        "currents": "海流",
+        "tidalcurrents": "潮流",
+        "no2": "二氧化氮 (NO2)",
+        "pm25": "PM2.5",
+        "aerosol": "氣溶膠",
+        "ozone": "臭氧層",
+        "so2": "二氧化硫 (SO2)",
+        "surfaceozone": "地面臭氧",
+        "co": "一氧化碳 (CO) 濃度",
+        "dust": "沙塵質量",
+        "pressure": "氣壓",
+        "extreme": "極端預報",
+        "warnings": "天氣預警",
+        "drought": "乾旱監測",
+        "fire": "火險等級"
+      },
+      "metrics": {
+        "default": "預設 (Windy 設置)"
+      },
+      "levels": {
+        "surface": "地面 (0米 / 0英尺)",
+        "100m": "100米 / 330英尺",
+        "950h": "950hPa – 600米 / 2000英尺",
+        "925h": "925hPa – 750米 / 2500英尺",
+        "900h": "900hPa – 900米 / 3000英尺",
+        "850h": "850hPa – 1500米 / 5000英尺",
+        "800h": "800hPa – 2000米 / 6500英尺",
+        "700h": "700hPa – 3000米 / 10000英尺",
+        "600h": "600hPa – 4200米 / 14000英尺",
+        "500h": "500hPa – 5500米 / 18000英尺",
+        "400h": "400hPa – 7000米 / 23000英尺",
+        "300h": "300hPa – 9000米 / 30000英尺",
+        "200h": "200hPa – 12000米 / 39000英尺",
+        "150h": "150hPa – 14000米 / 46000英尺"
+      }
+    }
+  }
+}

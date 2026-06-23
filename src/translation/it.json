@@ -28,6 +28,8 @@
       "default_mode": "Modalità predefinita",
       "overlay_entity": "Entità livello (lo stato viene usato come livello, sovrascrive il menu)",
       "overlay": "Livello (predefinito)",
+      "overlay_loop": "Ciclo dei livelli (Seleziona più livelli per alternarli)",
+      "overlay_loop_delay": "Ritardo del ciclo (secondi)",
       "level": "Altitudine",
       "product": "Modello previsionale",
       "forecast_product": "Fornitore dati",

@@ -28,6 +28,8 @@
       "default_mode": "Mode par défaut",
       "overlay_entity": "Entité de couche (l'état est utilisé comme couche, remplace la liste déroulante)",
       "overlay": "Couche (par défaut)",
+      "overlay_loop": "Boucle de calques (Sélectionner plusieurs pour alterner)",
+      "overlay_loop_delay": "Délai de la boucle (secondes)",
       "level": "Altitude",
       "product": "Modèle de prévision",
       "forecast_product": "Fournisseur de données",

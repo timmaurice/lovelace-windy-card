@@ -28,6 +28,8 @@
       "default_mode": "Modo predeterminado",
       "overlay_entity": "Entidad de capa (el estado se usa como capa)",
       "overlay": "Capa (predeterminada)",
+      "overlay_loop": "Bucle de capas (Seleccionar varias para alternar)",
+      "overlay_loop_delay": "Intervalo del bucle (segundos)",
       "level": "Altitud",
       "product": "Modelo de pronóstico",
       "forecast_product": "Proveedor de datos",

@@ -645,4 +645,115 @@ describe('WindyCard', () => {
       vi.useRealTimers();
     });
   });
+
+  describe('Overlay loop', () => {
+    it('parses overlay_loop from array or comma-separated string', () => {
+      const card = makeCard({ overlay_loop: ['wind', 'rain'] });
+      expect((card as unknown as { _config: WindyCardConfig })._config.overlay_loop).toEqual(['wind', 'rain']);
+
+      const card2 = makeCard({ overlay_loop: 'wind, rain, temp' as unknown as string[] });
+      expect((card2 as unknown as { _config: WindyCardConfig })._config.overlay_loop).toEqual(['wind', 'rain', 'temp']);
+    });
+
+    it('sanitizes and defaults overlay_loop_delay', () => {
+      const card = makeCard({ overlay_loop_delay: -10 });
+      expect((card as unknown as { _config: WindyCardConfig })._config.overlay_loop_delay).toBe(30);
+
+      const card2 = makeCard({ overlay_loop_delay: 15 });
+      expect((card2 as unknown as { _config: WindyCardConfig })._config.overlay_loop_delay).toBe(15);
+    });
+
+    it('resolves active loop overlay based on _loopIndex', () => {
+      const card = makeCard({ overlay_loop: ['wind', 'rain', 'temp'] });
+      
+      const getOverlay = (card as unknown as { _getOverlay: () => string })._getOverlay.bind(card);
+      
+      expect(getOverlay()).toBe('wind');
+      
+      (card as unknown as { _loopIndex: number })._loopIndex = 1;
+      expect(getOverlay()).toBe('rain');
+      
+      (card as unknown as { _loopIndex: number })._loopIndex = 2;
+      expect(getOverlay()).toBe('temp');
+      
+      (card as unknown as { _loopIndex: number })._loopIndex = 3;
+      expect(getOverlay()).toBe('wind'); // wraps around
+    });
+
+    it('sets up a timer to cycle the overlay loop', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ overlay_loop: ['wind', 'rain'], overlay_loop_delay: 10 });
+      card.connectedCallback();
+
+      // Trigger a render/update to ensure willUpdate processes the configuration
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      let src = getIframeSrc(card);
+      expect(src).toContain('overlay=wind');
+
+      // Fast forward by 10s
+      vi.advanceTimersByTime(10000);
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      src = getIframeSrc(card);
+      expect(src).toContain('overlay=rain');
+
+      // Fast forward by another 10s
+      vi.advanceTimersByTime(10000);
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      src = getIframeSrc(card);
+      expect(src).toContain('overlay=wind');
+
+      card.disconnectedCallback();
+      vi.useRealTimers();
+    });
+
+    it('clears loop timer on disconnectedCallback', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ overlay_loop: ['wind', 'rain'], overlay_loop_delay: 10 });
+      card.connectedCallback();
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      expect((card as unknown as { _loopTimer?: unknown })._loopTimer).toBeDefined();
+
+      card.disconnectedCallback();
+      expect((card as unknown as { _loopTimer?: unknown })._loopTimer).toBeUndefined();
+
+      vi.useRealTimers();
+    });
+
+    it('resets index and updates loop timer when config changes', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ overlay_loop: ['wind', 'rain'], overlay_loop_delay: 10 });
+      card.connectedCallback();
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      (card as unknown as { _loopIndex: number })._loopIndex = 1;
+      
+      // Update config with different overlays
+      card.setConfig({
+        type: 'custom:windy-card',
+        overlay_loop: ['temp', 'clouds'],
+        overlay_loop_delay: 20
+      });
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      // Loop index should be reset to 0
+      expect((card as unknown as { _loopIndex: number })._loopIndex).toBe(0);
+      
+      const src = getIframeSrc(card);
+      expect(src).toContain('overlay=temp');
+
+      // Timer should now fire at 20s
+      vi.advanceTimersByTime(20000);
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+      
+      const src2 = getIframeSrc(card);
+      expect(src2).toContain('overlay=clouds');
+
+      card.disconnectedCallback();
+      vi.useRealTimers();
+    });
+  });
 });

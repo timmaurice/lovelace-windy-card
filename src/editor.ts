@@ -26,6 +26,200 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
     const isForecastOnly = this._config.default_mode === 'forecast_only';
     const isMapOnly = this._config.default_mode === 'map_only';
 
+    const overlayOptions = [
+      // Core
+      {
+        value: 'radar',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.radar'),
+      },
+      {
+        value: 'satellite',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.satellite'),
+      },
+      {
+        value: 'wind',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.wind'),
+      },
+      {
+        value: 'rain',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.rain'),
+      },
+      {
+        value: 'temp',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.temp'),
+      },
+      {
+        value: 'clouds',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.clouds'),
+      },
+      {
+        value: 'waves',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.waves'),
+      },
+      {
+        value: 'rainAccu',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.raincum'),
+      },
+      {
+        value: 'gust',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.gusts'),
+      },
+      {
+        value: 'gustAccu',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.windcum'),
+      },
+      {
+        value: 'turbulence',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.cat'),
+      },
+      {
+        value: 'icing',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.icing'),
+      },
+      // Expanded
+      {
+        value: 'snowAccu',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.snow'),
+      },
+      {
+        value: 'snowcover',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.snowdepth'),
+      },
+      {
+        value: 'ptype',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.ptype'),
+      },
+      {
+        value: 'thunder',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.thunder'),
+      },
+      {
+        value: 'dewpoint',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.dewpoint'),
+      },
+      { value: 'rh', label: localize(this.hass, 'component.windy-card.editor.options.overlay.rh') },
+      {
+        value: 'deg0',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.freezing'),
+      },
+      {
+        value: 'wetbulbtemp',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.wetbulb'),
+      },
+      {
+        value: 'solarpower',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.solarpower'),
+      },
+      {
+        value: 'uvindex',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.uv'),
+      },
+      {
+        value: 'hclouds',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.hclouds'),
+      },
+      {
+        value: 'mclouds',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.mclouds'),
+      },
+      {
+        value: 'lclouds',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.lclouds'),
+      },
+      { value: 'fog', label: localize(this.hass, 'component.windy-card.editor.options.overlay.fog') },
+      {
+        value: 'cloudtop',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.cloudtop'),
+      },
+      {
+        value: 'cbase',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.cloudbase'),
+      },
+      {
+        value: 'visibility',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.visibility'),
+      },
+      {
+        value: 'cape',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.cap'),
+      },
+      {
+        value: 'ccl',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.thermals'),
+      },
+      {
+        value: 'swell1',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.swell'),
+      },
+      {
+        value: 'swell2',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.swell2'),
+      },
+      {
+        value: 'swell3',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.swell3'),
+      },
+      {
+        value: 'wwaves',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.wwave'),
+      },
+      { value: 'sst', label: localize(this.hass, 'component.windy-card.editor.options.overlay.sst') },
+      {
+        value: 'currents',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.currents'),
+      },
+      {
+        value: 'currentsTide',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.tidalcurrents'),
+      },
+      { value: 'no2', label: localize(this.hass, 'component.windy-card.editor.options.overlay.no2') },
+      {
+        value: 'pm2p5',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.pm25'),
+      },
+      {
+        value: 'aod550',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.aerosol'),
+      },
+      {
+        value: 'gtco3',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.ozone'),
+      },
+      {
+        value: 'tcso2',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.so2'),
+      },
+      {
+        value: 'go3',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.surfaceozone'),
+      },
+      { value: 'cosc', label: localize(this.hass, 'component.windy-card.editor.options.overlay.co') },
+      {
+        value: 'dustsm',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.dust'),
+      },
+      {
+        value: 'pressure',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.pressure'),
+      },
+      {
+        value: 'efiWind',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.extreme'),
+      },
+      {
+        value: 'capAlerts',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.warnings'),
+      },
+      {
+        value: 'drought40',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.drought'),
+      },
+      {
+        value: 'fwi',
+        label: localize(this.hass, 'component.windy-card.editor.options.overlay.fire'),
+      },
+    ];
+
     const schema: HaFormSchema[] = [
       // ── Section: View ──────────────────────────────────────────────
       {
@@ -149,199 +343,27 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                   selector: {
                     select: {
                       mode: 'dropdown',
-                      options: [
-                        // Core
-                        {
-                          value: 'radar',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.radar'),
-                        },
-                        {
-                          value: 'satellite',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.satellite'),
-                        },
-                        {
-                          value: 'wind',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.wind'),
-                        },
-                        {
-                          value: 'rain',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.rain'),
-                        },
-                        {
-                          value: 'temp',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.temp'),
-                        },
-                        {
-                          value: 'clouds',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.clouds'),
-                        },
-                        {
-                          value: 'waves',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.waves'),
-                        },
-                        {
-                          value: 'rainAccu',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.raincum'),
-                        },
-                        {
-                          value: 'gust',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.gusts'),
-                        },
-                        {
-                          value: 'gustAccu',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.windcum'),
-                        },
-                        {
-                          value: 'turbulence',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.cat'),
-                        },
-                        {
-                          value: 'icing',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.icing'),
-                        },
-                        // Expanded
-                        {
-                          value: 'snowAccu',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.snow'),
-                        },
-                        {
-                          value: 'snowcover',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.snowdepth'),
-                        },
-                        {
-                          value: 'ptype',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.ptype'),
-                        },
-                        {
-                          value: 'thunder',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.thunder'),
-                        },
-                        {
-                          value: 'dewpoint',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.dewpoint'),
-                        },
-                        { value: 'rh', label: localize(this.hass, 'component.windy-card.editor.options.overlay.rh') },
-                        {
-                          value: 'deg0',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.freezing'),
-                        },
-                        {
-                          value: 'wetbulbtemp',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.wetbulb'),
-                        },
-                        {
-                          value: 'solarpower',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.solarpower'),
-                        },
-                        {
-                          value: 'uvindex',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.uv'),
-                        },
-                        {
-                          value: 'hclouds',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.hclouds'),
-                        },
-                        {
-                          value: 'mclouds',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.mclouds'),
-                        },
-                        {
-                          value: 'lclouds',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.lclouds'),
-                        },
-                        { value: 'fog', label: localize(this.hass, 'component.windy-card.editor.options.overlay.fog') },
-                        {
-                          value: 'cloudtop',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.cloudtop'),
-                        },
-                        {
-                          value: 'cbase',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.cloudbase'),
-                        },
-                        {
-                          value: 'visibility',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.visibility'),
-                        },
-                        {
-                          value: 'cape',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.cap'),
-                        },
-                        {
-                          value: 'ccl',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.thermals'),
-                        },
-                        {
-                          value: 'swell1',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.swell'),
-                        },
-                        {
-                          value: 'swell2',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.swell2'),
-                        },
-                        {
-                          value: 'swell3',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.swell3'),
-                        },
-                        {
-                          value: 'wwaves',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.wwave'),
-                        },
-                        { value: 'sst', label: localize(this.hass, 'component.windy-card.editor.options.overlay.sst') },
-                        {
-                          value: 'currents',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.currents'),
-                        },
-                        {
-                          value: 'currentsTide',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.tidalcurrents'),
-                        },
-                        { value: 'no2', label: localize(this.hass, 'component.windy-card.editor.options.overlay.no2') },
-                        {
-                          value: 'pm2p5',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.pm25'),
-                        },
-                        {
-                          value: 'aod550',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.aerosol'),
-                        },
-                        {
-                          value: 'gtco3',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.ozone'),
-                        },
-                        {
-                          value: 'tcso2',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.so2'),
-                        },
-                        {
-                          value: 'go3',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.surfaceozone'),
-                        },
-                        { value: 'cosc', label: localize(this.hass, 'component.windy-card.editor.options.overlay.co') },
-                        {
-                          value: 'dustsm',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.dust'),
-                        },
-                        {
-                          value: 'pressure',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.pressure'),
-                        },
-                        {
-                          value: 'efiWind',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.extreme'),
-                        },
-                        {
-                          value: 'capAlerts',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.warnings'),
-                        },
-                        {
-                          value: 'drought40',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.drought'),
-                        },
-                        {
-                          value: 'fwi',
-                          label: localize(this.hass, 'component.windy-card.editor.options.overlay.fire'),
-                        },
-                      ],
+                      options: overlayOptions,
+                    },
+                  },
+                },
+                {
+                  name: 'overlay_loop',
+                  selector: {
+                    select: {
+                      mode: 'dropdown',
+                      multiple: true,
+                      options: overlayOptions,
+                    },
+                  },
+                },
+                {
+                  name: 'overlay_loop_delay',
+                  selector: {
+                    number: {
+                      mode: 'box',
+                      min: 1,
+                      unit_of_measurement: 's',
                     },
                   },
                 },

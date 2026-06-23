@@ -28,6 +28,8 @@
       "default_mode": "預設模式",
       "overlay_entity": "圖層實體 (其狀態用作圖層，覆蓋下拉選單)",
       "overlay": "圖層 (預設)",
+      "overlay_loop": "圖層循環 (選擇多個進行輪播)",
+      "overlay_loop_delay": "圖層循環延遲 (秒)",
       "level": "海拔高度",
       "product": "預報模型",
       "forecast_product": "數據提供商",

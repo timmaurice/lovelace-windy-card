@@ -93,6 +93,8 @@ export interface WindyCardConfig extends LovelaceCardConfig {
   static_map?: boolean;
   autoplay?: boolean;
   update_interval?: number;
+  overlay_loop?: string[];
+  overlay_loop_delay?: number;
 }
 
 export interface HaFormSchema {

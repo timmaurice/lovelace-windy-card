@@ -28,6 +28,8 @@
       "default_mode": "Standard-Modus",
       "overlay_entity": "Ebenen-Entität (Zustand wird als Ebene verwendet, überschreibt Dropdown)",
       "overlay": "Ebene (Standard)",
+      "overlay_loop": "Karten-Ebenen Schleife (Mehrere auswählen zum Wechseln)",
+      "overlay_loop_delay": "Wechsel-Intervall (Sekunden)",
       "level": "Höhe",
       "product": "Vorhersagemodell",
       "forecast_product": "Datenanbieter",

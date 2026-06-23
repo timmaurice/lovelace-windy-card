@@ -28,6 +28,8 @@
       "default_mode": "Mode predeterminat",
       "overlay_entity": "Entitat de capa (l'estat s'utilitza com a capa, substitueix el desplegable)",
       "overlay": "Capa (per defecte)",
+      "overlay_loop": "Bucle de capes (Seleccionar-ne diverses per alternar)",
+      "overlay_loop_delay": "Retard del bucle (segons)",
       "level": "Altitud",
       "product": "Model de previsió",
       "forecast_product": "Proveïdor de dades",

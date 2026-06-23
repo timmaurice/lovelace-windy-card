@@ -28,6 +28,8 @@
       "default_mode": "Standaardmodus",
       "overlay_entity": "Laag entiteit (status wordt gebruikt als laag)",
       "overlay": "Laag (standaard)",
+      "overlay_loop": "Kaartlagenlus (Selecteer meerdere om te wisselen)",
+      "overlay_loop_delay": "Vertraging van kaartlagenlus (seconden)",
       "level": "Hoogte",
       "product": "Verwachtingsmodel",
       "forecast_product": "Aanbieder van gegevens",

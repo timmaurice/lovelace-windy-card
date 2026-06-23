@@ -28,6 +28,8 @@
       "default_mode": "Default Mode",
       "overlay_entity": "Layer entity (state used as layer, overrides dropdown)",
       "overlay": "Layer (default)",
+      "overlay_loop": "Overlay Loop (Select multiple to cycle)",
+      "overlay_loop_delay": "Overlay Loop Delay (seconds)",
       "level": "Altitude",
       "product": "Forecast model",
       "forecast_product": "Data Provider",

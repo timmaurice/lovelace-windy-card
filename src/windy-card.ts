@@ -18,11 +18,15 @@ export class WindyCard extends LitElement implements LovelaceCard {
   @state() private _mapUrl: string = '';
   @state() private _forecastUrl: string = '';
 
+  @state() private _loopIndex: number = 0;
+
   private _lastUpdateTime: number = 0;
   private _throttleTimer?: ReturnType<typeof setTimeout>;
   private _pendingMapUrl: string = '';
   private _pendingForecastUrl: string = '';
   private _bypassThrottle: boolean = false;
+  private _loopTimer?: ReturnType<typeof setInterval>;
+  private _lastLoopParams?: { overlays: string[]; delay: number };
 
   public setConfig(config: WindyCardConfig): void {
     if (!config) {
@@ -33,6 +37,22 @@ export class WindyCard extends LitElement implements LovelaceCard {
       newConfig.location = newConfig.zone_entity;
     }
     delete newConfig.zone_entity;
+
+    if (newConfig.overlay_loop) {
+      if (typeof newConfig.overlay_loop === 'string') {
+        newConfig.overlay_loop = (newConfig.overlay_loop as string)
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+      } else if (!Array.isArray(newConfig.overlay_loop)) {
+        newConfig.overlay_loop = [];
+      }
+    }
+
+    if (newConfig.overlay_loop_delay !== undefined) {
+      const delay = Number(newConfig.overlay_loop_delay);
+      newConfig.overlay_loop_delay = !isNaN(delay) && delay > 0 ? delay : 30;
+    }
 
     this._config = newConfig;
     if (config.default_mode === 'forecast' || config.default_mode === 'forecast_only') {
@@ -46,20 +66,68 @@ export class WindyCard extends LitElement implements LovelaceCard {
     this._updateUrls(true);
   }
 
+  public connectedCallback(): void {
+    super.connectedCallback();
+    this._setupLoopTimer();
+  }
+
   public disconnectedCallback(): void {
     super.disconnectedCallback();
     if (this._throttleTimer) {
       clearTimeout(this._throttleTimer);
       this._throttleTimer = undefined;
     }
+    if (this._loopTimer) {
+      clearInterval(this._loopTimer);
+      this._loopTimer = undefined;
+    }
   }
 
   protected willUpdate(changedProperties: Map<string | number | symbol, unknown>): void {
     super.willUpdate(changedProperties);
 
-    if (changedProperties.has('hass') || changedProperties.has('_config') || this._bypassThrottle) {
-      this._updateUrls(this._bypassThrottle);
+    if (changedProperties.has('_config')) {
+      const newLoop = this._config?.overlay_loop || [];
+      const newDelay = this._config?.overlay_loop_delay ?? 30;
+
+      const oldParams = this._lastLoopParams;
+      const isLoopEqual =
+        oldParams &&
+        oldParams.overlays.length === newLoop.length &&
+        oldParams.overlays.every((val, i) => val === newLoop[i]) &&
+        oldParams.delay === newDelay;
+
+      if (!isLoopEqual) {
+        this._lastLoopParams = { overlays: [...newLoop], delay: newDelay };
+        this._loopIndex = 0;
+        this._setupLoopTimer();
+      }
+    }
+
+    if (
+      changedProperties.has('hass') ||
+      changedProperties.has('_config') ||
+      changedProperties.has('_loopIndex') ||
+      this._bypassThrottle
+    ) {
+      const force = this._bypassThrottle || changedProperties.has('_loopIndex');
+      this._updateUrls(force);
       this._bypassThrottle = false;
+    }
+  }
+
+  private _setupLoopTimer(): void {
+    if (this._loopTimer) {
+      clearInterval(this._loopTimer);
+      this._loopTimer = undefined;
+    }
+
+    const loop = this._config?.overlay_loop;
+    if (Array.isArray(loop) && loop.length > 1) {
+      const delay = (this._config?.overlay_loop_delay ?? 30) * 1000;
+      this._loopTimer = setInterval(() => {
+        this._loopIndex = (this._loopIndex + 1) % loop.length;
+      }, delay);
     }
   }
 
@@ -169,11 +237,18 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
   /** Resolve overlay from entity state or explicit config value */
   private _getOverlay(): string {
-    let rawOverlay = (this._config.overlay ?? 'wind').toLowerCase();
-    if (this._config.overlay_entity && this.hass?.states) {
-      const entityState = this.hass.states[this._config.overlay_entity];
-      if (entityState?.state) {
-        rawOverlay = entityState.state.toLowerCase();
+    let rawOverlay: string;
+    const loop = this._config.overlay_loop;
+    if (Array.isArray(loop) && loop.length > 0) {
+      const idx = this._loopIndex % loop.length;
+      rawOverlay = (loop[idx] ?? 'wind').toLowerCase();
+    } else {
+      rawOverlay = (this._config.overlay ?? 'wind').toLowerCase();
+      if (this._config.overlay_entity && this.hass?.states) {
+        const entityState = this.hass.states[this._config.overlay_entity];
+        if (entityState?.state) {
+          rawOverlay = entityState.state.toLowerCase();
+        }
       }
     }
 

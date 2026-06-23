@@ -87,15 +87,15 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 ### Map Layer
 
-| Name             | Type   | Default   | Description                                                                                                                                                        |
-| ---------------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `overlay_entity` | string | —         | HA entity whose state is used as the map overlay (overrides `overlay`)                                                                                             |
-| `overlay`        | string | `wind`    | Weather layer to show on the map (see [Available Map Layers](#available-map-layers-overlay)).                                                                      |
-| `level`          | string | `surface` | Altitude level (only for compatible layers)                                                                                                                        |
-| `product`        | string | `ecmwf`   | Forecast model to display on the map (see [Available Forecast Models](#available-forecast-models-product--forecast_product)). Hidden for radar/satellite overlays. |
-| `zoom`           | number | `5`       | Zoom level (3–11)                                                                                                                                                  |
-| `overlay_loop`   | list   | —         | Sequence of weather layers to automatically cycle through (overrides `overlay` and `overlay_entity`). Can be a YAML list or a comma-separated string.              |
-| `overlay_loop_delay` | number | `30`      | Time in seconds to show each layer in the `overlay_loop` before switching to the next one                                                                         |
+| Name                 | Type   | Default   | Description                                                                                                                                                        |
+| -------------------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `overlay_entity`     | string | —         | HA entity whose state is used as the map overlay (overrides `overlay`)                                                                                             |
+| `overlay`            | string | `wind`    | Weather layer to show on the map (see [Available Map Layers](#available-map-layers-overlay)).                                                                      |
+| `level`              | string | `surface` | Altitude level (only for compatible layers)                                                                                                                        |
+| `product`            | string | `ecmwf`   | Forecast model to display on the map (see [Available Forecast Models](#available-forecast-models-product--forecast_product)). Hidden for radar/satellite overlays. |
+| `zoom`               | number | `5`       | Zoom level (3–11)                                                                                                                                                  |
+| `overlay_loop`       | list   | —         | Sequence of weather layers to automatically cycle through (overrides `overlay` and `overlay_entity`). Can be a YAML list or a comma-separated string.              |
+| `overlay_loop_delay` | number | `30`      | Time in seconds to show each layer in the `overlay_loop` before switching to the next one                                                                          |
 
 ### Forecast Options
 

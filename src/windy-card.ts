@@ -540,7 +540,9 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
     const productParam = product ? `&product=${product}` : '';
 
-    return `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}${productParam}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}${autoplay}`;
+    const lang = this.hass?.language || 'en';
+
+    return `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}${productParam}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}${autoplay}&lang=${lang}`;
   }
 
   private _renderMap() {
@@ -553,8 +555,9 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const metricRain = this._config.metric_rain ?? 'default';
     const metricWind = this._config.metric_wind ?? 'default';
     const product = this._config.forecast_product ?? this._config.product ?? 'ecmwf';
+    const lang = this.hass?.language || 'en';
 
-    return `https://embed.windy.com/embed.html?type=forecast&location=coordinates&detail=true&detailLat=${lat}&detailLon=${lon}&metricTemp=${metricTemp}&metricRain=${metricRain}&metricWind=${metricWind}&product=${product}`;
+    return `https://embed.windy.com/embed.html?type=forecast&location=coordinates&detail=true&detailLat=${lat}&detailLon=${lon}&metricTemp=${metricTemp}&metricRain=${metricRain}&metricWind=${metricWind}&product=${product}&lang=${lang}`;
   }
 
   private _renderForecast() {

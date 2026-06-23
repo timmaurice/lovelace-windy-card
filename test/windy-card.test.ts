@@ -321,6 +321,22 @@ describe('WindyCard', () => {
     });
   });
 
+  describe('URL generation — lang', () => {
+    it('includes lang parameter based on HASS language', () => {
+      const card = makeCard({ overlay: 'wind' });
+      let src = getIframeSrc(card);
+      expect(src).toContain('lang=en');
+
+      card.hass = { ...mockHass, language: 'de' } as unknown as typeof card.hass;
+      (card as unknown as { _updateUrls: (force: boolean) => void })._updateUrls(true);
+      src = getIframeSrc(card);
+      expect(src).toContain('lang=de');
+
+      const forecastSrc = getForecastIframeSrc(card);
+      expect(forecastSrc).toContain('lang=de');
+    });
+  });
+
   describe('aspect ratio', () => {
     it('returns correct padding for 16:9', () => {
       const card = makeCard({ overlay: 'wind', aspect_ratio: '16:9' });

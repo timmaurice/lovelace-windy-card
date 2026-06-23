@@ -440,7 +440,16 @@ export class WindyCard extends LitElement implements LovelaceCard {
       'moistureAnom100',
     ].includes(overlay);
 
-    const product = isRadarOrSatellite || hasFixedProduct ? '' : (this._config.product ?? 'ecmwf');
+    let product = isRadarOrSatellite || hasFixedProduct ? '' : (this._config.product ?? 'ecmwf');
+
+    // Accumulation layers (rainAccu, snowAccu, gustAccu) only support ECMWF and GFS.
+    // Fall back to ECMWF if an unsupported product is configured.
+    if (['rainaccu', 'snowaccu', 'gustaccu'].includes(overlay.toLowerCase())) {
+      if (product && !['ecmwf', 'gfs'].includes(product)) {
+        product = 'ecmwf';
+      }
+    }
+
     const level = supportsElevation ? (this._config.level ?? 'surface') : 'surface';
 
     const metricTemp = this._config.metric_temp ?? 'default';
@@ -454,7 +463,9 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const message = this._config.hide_message ? '&message=true' : '';
     const autoplay = this._config.autoplay ? '&play=true' : '';
 
-    return `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}&product=${product}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}${autoplay}`;
+    const productParam = product ? `&product=${product}` : '';
+
+    return `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}${productParam}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}${autoplay}`;
   }
 
   private _renderMap() {

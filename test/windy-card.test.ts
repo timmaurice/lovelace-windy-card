@@ -104,25 +104,25 @@ describe('WindyCard', () => {
       const card = makeCard({ overlay: 'radar' });
       const src = getIframeSrc(card);
       expect(src).toContain('overlay=radar');
-      expect(src).toContain('product=&');
+      expect(src).not.toContain('product=');
     });
 
     it('omits product for satellite overlay', () => {
       const card = makeCard({ overlay: 'satellite' });
       const src = getIframeSrc(card);
-      expect(src).toContain('product=&');
+      expect(src).not.toContain('product=');
     });
 
     it('omits product for case-insensitive satellite overlay', () => {
       const card = makeCard({ overlay: 'Satellite' });
       const src = getIframeSrc(card);
-      expect(src).toContain('product=&');
+      expect(src).not.toContain('product=');
     });
 
     it('omits product for case-insensitive radar overlay', () => {
       const card = makeCard({ overlay: 'Radar' });
       const src = getIframeSrc(card);
-      expect(src).toContain('product=&');
+      expect(src).not.toContain('product=');
     });
 
     it('includes product for wind overlay', () => {
@@ -147,6 +147,18 @@ describe('WindyCard', () => {
       const card = makeCard({ overlay: 'wind' });
       const src = getIframeSrc(card);
       expect(src).toContain('product=ecmwf');
+    });
+
+    it('falls back to ecmwf for rainAccu when product is unsupported', () => {
+      const card = makeCard({ overlay: 'rainAccu', product: 'icon' });
+      const src = getIframeSrc(card);
+      expect(src).toContain('product=ecmwf');
+    });
+
+    it('allows gfs for rainAccu since it is supported', () => {
+      const card = makeCard({ overlay: 'rainAccu', product: 'gfs' });
+      const src = getIframeSrc(card);
+      expect(src).toContain('product=gfs');
     });
   });
 

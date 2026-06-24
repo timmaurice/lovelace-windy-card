@@ -1,6 +1,6 @@
 {
   "name": "windy-card",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "A Lovelace card for Windy Map and Forecast.",
   "homepage": "https://github.com/timmaurice/lovelace-windy-card#readme",
   "bugs": {

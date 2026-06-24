@@ -160,6 +160,43 @@ describe('WindyCard', () => {
       const src = getIframeSrc(card);
       expect(src).toContain('product=gfs');
     });
+
+    it('resolves rainAccu overlay with correct camelCase', () => {
+      const card1 = makeCard({ overlay: 'rainAccu' });
+      expect(getIframeSrc(card1)).toContain('overlay=rainAccu');
+
+      const card2 = makeCard({ overlay: 'raincum' }); // legacy
+      expect(getIframeSrc(card2)).toContain('overlay=rainAccu');
+
+      const card3 = makeCard({ overlay: 'RAINACCU' }); // case-insensitive modern
+      expect(getIframeSrc(card3)).toContain('overlay=rainAccu');
+    });
+
+    it('resolves snowAccu and gustAccu overlays with correct camelCase', () => {
+      const card1 = makeCard({ overlay: 'snowAccu' });
+      expect(getIframeSrc(card1)).toContain('overlay=snowAccu');
+
+      const card2 = makeCard({ overlay: 'snow' }); // legacy
+      expect(getIframeSrc(card2)).toContain('overlay=snowAccu');
+
+      const card3 = makeCard({ overlay: 'gustAccu' });
+      expect(getIframeSrc(card3)).toContain('overlay=gustAccu');
+
+      const card4 = makeCard({ overlay: 'windcum' }); // legacy
+      expect(getIframeSrc(card4)).toContain('overlay=gustAccu');
+    });
+
+    it('resolves currentsTide and other camelCase fixed product overlays, omitting product', () => {
+      const card1 = makeCard({ overlay: 'currentsTide', product: 'gfs' });
+      const src1 = getIframeSrc(card1);
+      expect(src1).toContain('overlay=currentsTide');
+      expect(src1).not.toContain('product=');
+
+      const card2 = makeCard({ overlay: 'CURRENTSTIDE', product: 'gfs' });
+      const src2 = getIframeSrc(card2);
+      expect(src2).toContain('overlay=currentsTide');
+      expect(src2).not.toContain('product=');
+    });
   });
 
   describe('URL generation — forecast product', () => {

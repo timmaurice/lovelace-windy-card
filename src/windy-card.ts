@@ -252,7 +252,8 @@ export class WindyCard extends LitElement implements LovelaceCard {
       }
     }
 
-    const legacyMap: Record<string, string> = {
+    const overlayMap: Record<string, string> = {
+      // Legacy mappings (lowercase keys)
       raincum: 'rainAccu',
       gusts: 'gust',
       windcum: 'gustAccu',
@@ -279,9 +280,23 @@ export class WindyCard extends LitElement implements LovelaceCard {
       warnings: 'capAlerts',
       drought: 'drought40',
       fire: 'fwi',
+
+      // Modern case corrections (lowercase keys mapped to camelCase / correct case)
+      rainaccu: 'rainAccu',
+      gustaccu: 'gustAccu',
+      snowaccu: 'snowAccu',
+      currentstide: 'currentsTide',
+      efitemp: 'efiTemp',
+      efiwind: 'efiWind',
+      efirain: 'efiRain',
+      capalerts: 'capAlerts',
+      soilmoisture40: 'soilMoisture40',
+      soilmoisture100: 'soilMoisture100',
+      moistureanom40: 'moistureAnom40',
+      moistureanom100: 'moistureAnom100',
     };
 
-    return legacyMap[rawOverlay] || rawOverlay;
+    return overlayMap[rawOverlay] || rawOverlay;
   }
 
   /** Resolve map center lat/lon from zone entity or explicit config values */

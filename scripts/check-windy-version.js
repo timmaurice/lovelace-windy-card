@@ -63,13 +63,19 @@ async function checkVersion() {
       fs.writeFileSync(VERSION_FILE_PATH, JSON.stringify(updatedMetadata, null, 2) + '\n', 'utf8');
 
       console.log('Windy embed script downloaded and metadata updated.');
-      console.log('::set-output name=updated::true');
-      console.log(`::set-output name=version::${onlineVersion}`);
-      console.log(`::set-output name=assets::${onlineAssets}`);
-      console.log(`::set-output name=build::${onlineBuild}`);
+      console.log(`Outputs: updated=true, version=${onlineVersion}, assets=${onlineAssets}, build=${onlineBuild}`);
+      if (process.env.GITHUB_OUTPUT) {
+        fs.appendFileSync(
+          process.env.GITHUB_OUTPUT,
+          `updated=true\nversion=${onlineVersion}\nassets=${onlineAssets}\nbuild=${onlineBuild}\n`,
+        );
+      }
     } else {
       console.log('No updates found. Local Windy embed version is up to date.');
-      console.log('::set-output name=updated::false');
+      console.log('Outputs: updated=false');
+      if (process.env.GITHUB_OUTPUT) {
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `updated=false\n`);
+      }
     }
   } catch (error) {
     console.error('Error checking Windy version:', error);

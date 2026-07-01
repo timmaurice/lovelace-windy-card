@@ -28,25 +28,7 @@ jobs:
 
       - name: Run version check
         id: check
-        run: |
-          OUTPUT=$(node scripts/check-windy-version.js)
-          echo "$OUTPUT"
-
-          # Parse outputs
-          if echo "$OUTPUT" | grep -q "::set-output name=updated::true"; then
-            echo "updated=true" >> "$GITHUB_OUTPUT"
-            
-            # Extract values from output lines
-            VERSION=$(echo "$OUTPUT" | grep "::set-output name=version::" | sed 's/::set-output name=version:://')
-            ASSETS=$(echo "$OUTPUT" | grep "::set-output name=assets::" | sed 's/::set-output name=assets:://')
-            BUILD=$(echo "$OUTPUT" | grep "::set-output name=build::" | sed 's/::set-output name=build:://')
-            
-            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-            echo "assets=$ASSETS" >> "$GITHUB_OUTPUT"
-            echo "build=$BUILD" >> "$GITHUB_OUTPUT"
-          else
-            echo "updated=false" >> "$GITHUB_OUTPUT"
-          fi
+        run: node scripts/check-windy-version.js
 
       - name: Format snapshot and create PR
         if: steps.check.outputs.updated == 'true'

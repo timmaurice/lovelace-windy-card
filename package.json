@@ -28,7 +28,7 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
-    "eslint": "^10.9.0",
+    "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-lit": "^2.3.1",
     "eslint-plugin-wc": "^3.1.0",
@@ -36,11 +36,11 @@
     "jsdom": "^30.0.1",
     "lit": "^3.3.3",
     "prettier": "^3.9.6",
-    "rollup": "^4.62.5",
+    "rollup": "^4.63.1",
     "rollup-plugin-lit-css": "^6.0.1",
     "sass": "^1.103.1",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.67.0",
+    "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11"
   },
   "dependencies": {

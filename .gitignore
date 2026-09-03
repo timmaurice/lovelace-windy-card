@@ -11,3 +11,6 @@ yarn.lock
 ha-config/*
 !ha-config/configuration.yaml
 !ha-config/ui-lovelace.yaml
+
+# Build output (built by CI and attached to the GitHub release)
+dist/

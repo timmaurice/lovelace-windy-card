@@ -121,6 +121,13 @@ test.describe('The card on a real dashboard', () => {
     // The lock is map-only by design, so the forecast panel keeps no toggle.
     await expect(card.locator('.static-toggle-button')).toHaveCount(0);
 
+    // And so is the aspect ratio: the forecast is a fixed-layout widget, so 16:9 used to
+    // leave it sitting on a block of empty space.
+    await expect(card.locator('.iframe-container.ratio-wrapper')).toHaveCount(0);
+    const forecastBox = (await embedFrames(card).boundingBox())!;
+    expect(forecastBox.height).toBeGreaterThan(100);
+    expect(forecastBox.height / forecastBox.width).toBeLessThan(9 / 16);
+
     expect(consoleErrors).toEqual([]);
   });
 

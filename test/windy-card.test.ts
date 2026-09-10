@@ -593,6 +593,34 @@ describe('WindyCard', () => {
     });
   });
 
+  describe('aspect ratio applies to the map only', () => {
+    function renderPanel(card: WindyCard, mode: 'map' | 'forecast'): HTMLElement {
+      const container = document.createElement('div');
+      const method = mode === 'map' ? '_renderMap' : '_renderForecast';
+      render((card as unknown as Record<string, () => unknown>)[method](), container);
+      return container;
+    }
+
+    it('wraps the map in the ratio wrapper', () => {
+      const container = renderPanel(makeCard({ aspect_ratio: '16:9' }), 'map');
+      expect(container.querySelector('.iframe-container.ratio-wrapper')).not.toBeNull();
+    });
+
+    // The forecast is a fixed-layout widget - given the map's ratio it just gained a
+    // margin of empty space below it.
+    it('leaves the forecast at its own height', () => {
+      const container = renderPanel(makeCard({ aspect_ratio: '16:9' }), 'forecast');
+
+      expect(container.querySelector('.ratio-wrapper')).toBeNull();
+      expect(container.querySelector('iframe')?.getAttribute('height')).toBe('185');
+    });
+
+    it('still honours an explicit height on the forecast', () => {
+      const container = renderPanel(makeCard({ aspect_ratio: '16:9', height: 320 }), 'forecast');
+      expect(container.querySelector('iframe')?.getAttribute('height')).toBe('320');
+    });
+  });
+
   describe('customCards registration', () => {
     it('registers the card in window.customCards', () => {
       expect(window.customCards.some((c) => c.type === 'windy-card')).toBe(true);

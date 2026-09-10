@@ -570,8 +570,11 @@ export class WindyCard extends LitElement implements LovelaceCard {
     showResetButton: boolean = false,
     respectStaticLock: boolean = true,
     allowFullscreen: boolean = false,
+    useAspectRatio: boolean = true,
   ) {
-    const ratioPadding = this._getRatioPadding();
+    // `aspect_ratio` sizes the map. The spot forecast is a widget of its own with a fixed
+    // layout, so stretching it to the map's ratio only padded it with empty space.
+    const ratioPadding = useAspectRatio ? this._getRatioPadding() : null;
     const height = this._config.height;
     const isFullscreen = allowFullscreen && this._isFullscreen;
 
@@ -756,7 +759,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
   }
 
   private _renderForecast() {
-    return this._renderIframeWithWrapper(this._forecastUrl, 185, 'Windy Forecast', false, false);
+    return this._renderIframeWithWrapper(this._forecastUrl, 185, 'Windy Forecast', false, false, false, false);
   }
 
   static styles = unsafeCSS(cardStyles);

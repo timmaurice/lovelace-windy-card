@@ -10,6 +10,8 @@
     "disable_interaction": "Disattiva interazione",
     "fullscreen": "Schermo intero",
     "exit_fullscreen": "Esci da schermo intero",
+    "map_frame": "Mappa Windy",
+    "forecast_frame": "Previsione locale Windy",
     "entity_problem": {
       "not_found": "{entity} non esiste.",
       "unavailable": "{entity} non è disponibile.",

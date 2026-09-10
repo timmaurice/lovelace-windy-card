@@ -10,6 +10,8 @@
     "disable_interaction": "Disable interaction",
     "fullscreen": "Full screen",
     "exit_fullscreen": "Exit full screen",
+    "map_frame": "Windy map",
+    "forecast_frame": "Windy spot forecast",
     "entity_problem": {
       "not_found": "{entity} does not exist.",
       "unavailable": "{entity} is unavailable.",

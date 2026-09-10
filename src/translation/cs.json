@@ -10,6 +10,8 @@
     "disable_interaction": "Zakázat ovládání",
     "fullscreen": "Celá obrazovka",
     "exit_fullscreen": "Ukončit celou obrazovku",
+    "map_frame": "Mapa Windy",
+    "forecast_frame": "Předpověď pro místo Windy",
     "entity_problem": {
       "not_found": "{entity} neexistuje.",
       "unavailable": "{entity} není dostupná.",

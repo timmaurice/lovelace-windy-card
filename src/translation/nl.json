@@ -10,6 +10,8 @@
     "disable_interaction": "Interactie uitschakelen",
     "fullscreen": "Volledig scherm",
     "exit_fullscreen": "Volledig scherm verlaten",
+    "map_frame": "Windy-kaart",
+    "forecast_frame": "Windy-locatievoorspelling",
     "entity_problem": {
       "not_found": "{entity} bestaat niet.",
       "unavailable": "{entity} is niet beschikbaar.",

@@ -621,6 +621,44 @@ describe('WindyCard', () => {
     });
   });
 
+  describe('accessible names', () => {
+    function renderPanel(card: WindyCard, mode: 'map' | 'forecast' = 'map'): HTMLElement {
+      const container = document.createElement('div');
+      const method = mode === 'map' ? '_renderMap' : '_renderForecast';
+      render((card as unknown as Record<string, () => unknown>)[method](), container);
+      return container;
+    }
+
+    // Icon-only buttons announce as "button" and nothing else without a label.
+    it('labels every toolbar button', () => {
+      const container = renderPanel(makeCard({ static_map: true }));
+
+      for (const selector of ['.reset-button', '.static-toggle-button', '.fullscreen-button']) {
+        const button = container.querySelector(selector);
+        expect(button, selector).not.toBeNull();
+        expect(button?.getAttribute('aria-label'), selector).toBeTruthy();
+      }
+    });
+
+    it('says which way the two toggles stand', () => {
+      const locked = renderPanel(makeCard({ static_map: true }));
+      expect(locked.querySelector('.static-toggle-button')?.getAttribute('aria-pressed')).toBe('true');
+      expect(locked.querySelector('.fullscreen-button')?.getAttribute('aria-pressed')).toBe('false');
+
+      const unlocked = renderPanel(makeCard({}));
+      expect(unlocked.querySelector('.static-toggle-button')?.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    // Hardcoded English is what the localize() call exists to avoid.
+    it('titles both frames from the translations', () => {
+      const card = makeCard({});
+      card.hass = { ...mockHass, language: 'de' } as unknown as typeof card.hass;
+
+      expect(renderPanel(card, 'map').querySelector('iframe')?.getAttribute('title')).toBe('Windy-Karte');
+      expect(renderPanel(card, 'forecast').querySelector('iframe')?.getAttribute('title')).toBe('Windy-Ortsvorhersage');
+    });
+  });
+
   describe('customCards registration', () => {
     it('registers the card in window.customCards', () => {
       expect(window.customCards.some((c) => c.type === 'windy-card')).toBe(true);

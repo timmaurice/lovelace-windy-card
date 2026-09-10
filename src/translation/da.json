@@ -10,6 +10,8 @@
     "disable_interaction": "Deaktivér interaktion",
     "fullscreen": "Fuld skærm",
     "exit_fullscreen": "Afslut fuld skærm",
+    "map_frame": "Windy-kort",
+    "forecast_frame": "Windy-stedprognose",
     "entity_problem": {
       "not_found": "{entity} findes ikke.",
       "unavailable": "{entity} er utilgængelig.",

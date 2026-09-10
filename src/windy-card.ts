@@ -587,44 +587,54 @@ export class WindyCard extends LitElement implements LovelaceCard {
     // overlay's location dot in the right place.
     const allow = this._config.allow_geolocation ? 'geolocation' : nothing;
 
+    // Every toolbar button is an icon and nothing else, so without a label a screen
+    // reader announces "button" and no more. The label is the same string the tooltip
+    // shows, and the two toggles also say which way they currently stand.
+    const resetLabel = localize(this.hass, 'component.windy-card.card.reset_map') ?? 'Reset Map';
     const resetButton = showResetButton
       ? html`<button
           class="action-button reset-button"
           @click=${this._resetMap}
-          title="${localize(this.hass, 'component.windy-card.card.reset_map') ?? 'Reset Map'}"
+          title="${resetLabel}"
+          aria-label="${resetLabel}"
         >
-          <ha-icon icon="mdi:crosshairs-gps"></ha-icon>
+          <ha-icon icon="mdi:crosshairs-gps" aria-hidden="true"></ha-icon>
         </button>`
       : '';
 
     // Only meaningful where the lock actually disables interaction (the map) — showing it
     // on the forecast panel would suggest it does something there, which it no longer does.
+    const staticLabel = this._isStatic
+      ? (localize(this.hass, 'component.windy-card.card.enable_interaction') ?? 'Enable Interaction')
+      : (localize(this.hass, 'component.windy-card.card.disable_interaction') ?? 'Disable Interaction');
     const toggleStaticButton = respectStaticLock
       ? html`<button
           class="action-button static-toggle-button ${this._isStatic ? 'is-active' : ''}"
           @click=${this._toggleStatic}
-          title="${
-            this._isStatic
-              ? (localize(this.hass, 'component.windy-card.card.enable_interaction') ?? 'Enable Interaction')
-              : (localize(this.hass, 'component.windy-card.card.disable_interaction') ?? 'Disable Interaction')
-          }"
+          title="${staticLabel}"
+          aria-label="${staticLabel}"
+          aria-pressed="${this._isStatic}"
         >
-          <ha-icon icon="${this._isStatic ? 'mdi:lock' : 'mdi:lock-open-variant'}"></ha-icon>
+          <ha-icon icon="${this._isStatic ? 'mdi:lock' : 'mdi:lock-open-variant'}" aria-hidden="true"></ha-icon>
         </button>`
       : '';
 
+    const fullscreenLabel = this._isFullscreen
+      ? (localize(this.hass, 'component.windy-card.card.exit_fullscreen') ?? 'Exit full screen')
+      : (localize(this.hass, 'component.windy-card.card.fullscreen') ?? 'Full screen');
     const fullscreenButton =
       allowFullscreen && this._fullscreenEnabled
         ? html`<button
             class="action-button fullscreen-button"
             @click=${this._toggleFullscreen}
-            title="${
-              this._isFullscreen
-                ? (localize(this.hass, 'component.windy-card.card.exit_fullscreen') ?? 'Exit full screen')
-                : (localize(this.hass, 'component.windy-card.card.fullscreen') ?? 'Full screen')
-            }"
+            title="${fullscreenLabel}"
+            aria-label="${fullscreenLabel}"
+            aria-pressed="${this._isFullscreen}"
           >
-            <ha-icon icon="${this._isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'}"></ha-icon>
+            <ha-icon
+              icon="${this._isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'}"
+              aria-hidden="true"
+            ></ha-icon>
           </button>`
         : '';
 
@@ -738,7 +748,10 @@ export class WindyCard extends LitElement implements LovelaceCard {
   }
 
   private _renderMap() {
-    return this._renderIframeWithWrapper(this._mapUrl, 450, 'Windy Map', true, true, true);
+    // The frame title is what a screen reader announces for the embed, so it belongs in
+    // the translations like every other user-facing string.
+    const title = localize(this.hass, 'component.windy-card.card.map_frame') ?? 'Windy Map';
+    return this._renderIframeWithWrapper(this._mapUrl, 450, title, true, true, true);
   }
 
   private _computeForecastUrl(): string {
@@ -759,7 +772,8 @@ export class WindyCard extends LitElement implements LovelaceCard {
   }
 
   private _renderForecast() {
-    return this._renderIframeWithWrapper(this._forecastUrl, 185, 'Windy Forecast', false, false, false, false);
+    const title = localize(this.hass, 'component.windy-card.card.forecast_frame') ?? 'Windy Forecast';
+    return this._renderIframeWithWrapper(this._forecastUrl, 185, title, false, false, false, false);
   }
 
   static styles = unsafeCSS(cardStyles);

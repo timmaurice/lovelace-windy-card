@@ -107,10 +107,17 @@ test.describe('The card on a real dashboard', () => {
     expect(box!.height / box!.width).toBeCloseTo(9 / 16, 1);
 
     // The overlay buttons the card draws over the frame, and the lock the
-    // config asked for.
+    // config asked for. They are icon-only, so the accessible name has to come
+    // from the label - a real browser is where that is worth asserting.
     await expect(card.locator('.reset-button')).toBeVisible();
     await expect(card.locator('.static-toggle-button.is-active')).toBeVisible();
     await expect(card.locator('.fullscreen-button')).toBeVisible();
+    for (const button of ['.reset-button', '.static-toggle-button', '.fullscreen-button']) {
+      const name = await card.locator(button).getAttribute('aria-label');
+      expect(name?.trim(), `${button} is named`).toBeTruthy();
+    }
+    await expect(card.locator('.static-toggle-button')).toHaveAttribute('aria-pressed', 'true');
+    await expect(embedFrames(card)).toHaveAttribute('title', /.+/);
 
     // Switching tabs swaps the embed for the forecast one, same location.
     await card.locator('.mode-tab[data-mode="forecast"]').click();

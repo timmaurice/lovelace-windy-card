@@ -10,6 +10,8 @@
     "disable_interaction": "禁用互動",
     "fullscreen": "全螢幕",
     "exit_fullscreen": "結束全螢幕",
+    "map_frame": "Windy 地圖",
+    "forecast_frame": "Windy 地點預報",
     "entity_problem": {
       "not_found": "{entity} 不存在。",
       "unavailable": "{entity} 無法使用。",

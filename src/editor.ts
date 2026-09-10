@@ -232,6 +232,10 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
         expanded: true,
         title: localize(this.hass, 'component.windy-card.editor.sections.view'),
         schema: [
+          // The card has always rendered `title` as the ha-card header and the label has
+          // always been translated - only the field was missing, so it could be set in
+          // YAML but not in the editor that is meant to replace YAML.
+          { name: 'title', selector: { text: {} } },
           {
             name: '',
             type: 'grid',

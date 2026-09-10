@@ -78,6 +78,17 @@ describe('WindyCardEditor', () => {
       expect(flatSchema.some((s) => s.name === 'product')).toBe(true);
     });
 
+    // The card renders it and the translations name it; only the editor never offered it.
+    it.each(['map', 'forecast', 'map_only', 'forecast_only'] as const)(
+      'offers the card title in %s mode',
+      (default_mode) => {
+        const editor = makeEditor({ default_mode });
+        const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+        const flatSchema = flattenSchema(schema);
+        expect(flatSchema.some((s) => s.name === 'title')).toBe(true);
+      },
+    );
+
     it('hides map options when in forecast_only mode', () => {
       const editor = makeEditor({ default_mode: 'forecast_only' });
       const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();

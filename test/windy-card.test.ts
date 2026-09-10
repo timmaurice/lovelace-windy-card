@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render } from 'lit';
 import '../src/windy-card.js';
 import { WindyCard } from '../src/windy-card.js';
-import type { WindyCardConfig } from '../src/types.js';
+import type { HomeAssistant, WindyCardConfig } from '../src/types.js';
 
 // Minimal HomeAssistant mock
 const mockHass = {
@@ -56,13 +56,40 @@ function renderCard(card: WindyCard): HTMLElement {
 
 describe('WindyCard', () => {
   describe('getStubConfig()', () => {
-    it('returns a valid stub config', () => {
+    it('returns only what differs from the defaults', () => {
       const stub = WindyCard.getStubConfig();
+
       expect(stub.type).toBeUndefined(); // type is added by HA
-      expect(stub.overlay).toBe('wind');
-      expect(stub.zoom).toBe(5);
       expect(stub.aspect_ratio).toBe('16:9');
-      expect(stub.metric_temp).toBe('default');
+      // Everything below is exactly what the card does when it is not told, so writing
+      // it into the user's dashboard would only pin today's defaults forever.
+      for (const key of ['default_mode', 'overlay', 'zoom', 'product', 'level', 'metric_temp', 'metric_rain']) {
+        expect(stub[key], key).toBeUndefined();
+      }
+    });
+
+    it('does not throw before hass is set', () => {
+      expect(() => WindyCard.getStubConfig()).not.toThrow();
+      expect(() => WindyCard.getStubConfig(undefined, [])).not.toThrow();
+    });
+
+    it('picks the first zone the user drew', () => {
+      const stub = WindyCard.getStubConfig(undefined, ['sensor.temperature', 'zone.home', 'zone.sailing_club']);
+      expect(stub.location).toBe('zone.sailing_club');
+    });
+
+    it('falls back to the states when no entity list is offered', () => {
+      const hass = {
+        states: { 'light.kitchen': {}, 'zone.allotment': {} },
+      } as unknown as HomeAssistant;
+      expect(WindyCard.getStubConfig(hass).location).toBe('zone.allotment');
+    });
+
+    // The card centres on the instance's own coordinates by itself, so naming zone.home
+    // would bake in what already happens.
+    it('leaves the location out when only zone.home exists', () => {
+      const stub = WindyCard.getStubConfig(undefined, ['zone.home', 'sensor.wind']);
+      expect(stub.location).toBeUndefined();
     });
   });
 

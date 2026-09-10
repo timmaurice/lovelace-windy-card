@@ -214,18 +214,31 @@ export class WindyCard extends LitElement implements LovelaceCard {
     return document.createElement(EDITOR_ELEMENT_NAME) as unknown as LovelaceCardEditor;
   }
 
-  public static getStubConfig(): Record<string, unknown> {
-    return {
-      default_mode: 'map',
-      metric_temp: 'default',
-      metric_rain: 'default',
-      metric_wind: 'default',
-      zoom: 5,
-      overlay: 'wind',
-      product: 'ecmwf',
-      level: 'surface',
-      aspect_ratio: '16:9',
-    };
+  /**
+   * What "Add card" starts the user off with.
+   *
+   * Only keys that differ from what the card does anyway: a stub that restates the
+   * defaults writes them into the user's dashboard as noise, and worse, pins them - the
+   * day a default changes, every card added before that day keeps the old value with
+   * nobody having chosen it. `aspect_ratio` is the one real choice here, since without
+   * it the map falls back to a fixed pixel height instead of following the column.
+   *
+   * Home Assistant may call this before it has a `hass` to give, so nothing here may
+   * assume one.
+   */
+  public static getStubConfig(hass?: HomeAssistant, entities?: string[]): Record<string, unknown> {
+    const stub: Record<string, unknown> = { aspect_ratio: '16:9' };
+
+    // A zone the user drew is a place worth centring on. `zone.home` is not offered:
+    // the card already falls back to the instance's own coordinates, so naming it would
+    // only bake in what happens anyway.
+    const candidates = entities?.length ? entities : Object.keys(hass?.states ?? {});
+    const location = candidates.find((entityId) => entityId.startsWith('zone.') && entityId !== 'zone.home');
+    if (location) {
+      stub.location = location;
+    }
+
+    return stub;
   }
 
   public getCardSize(): number {

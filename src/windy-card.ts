@@ -4,6 +4,13 @@ import { HomeAssistant, LovelaceCard, LovelaceCardEditor, WindyCardConfig } from
 import { localize } from './localize.js';
 import cardStyles from './styles/card.styles.scss';
 import { ELEMENT_NAME, EDITOR_ELEMENT_NAME } from './constants.js';
+import {
+  hasFixedProduct,
+  isAccumulationOverlay,
+  isImageryOverlay,
+  normalizeOverlay,
+  supportsElevation,
+} from './overlays.js';
 
 type ViewMode = 'map' | 'forecast';
 
@@ -278,51 +285,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
       }
     }
 
-    const overlayMap: Record<string, string> = {
-      // Legacy mappings (lowercase keys)
-      raincum: 'rainAccu',
-      gusts: 'gust',
-      windcum: 'gustAccu',
-      cat: 'turbulence',
-      snow: 'snowAccu',
-      snowdepth: 'snowcover',
-      freezing: 'deg0',
-      wetbulb: 'wetbulbtemp',
-      uv: 'uvindex',
-      cloudbase: 'cbase',
-      cap: 'cape',
-      thermals: 'ccl',
-      swell: 'swell1',
-      wwave: 'wwaves',
-      tidalcurrents: 'currentsTide',
-      pm25: 'pm2p5',
-      aerosol: 'aod550',
-      ozone: 'gtco3',
-      so2: 'tcso2',
-      surfaceozone: 'go3',
-      co: 'cosc',
-      dust: 'dustsm',
-      extreme: 'efiWind',
-      warnings: 'capAlerts',
-      drought: 'drought40',
-      fire: 'fwi',
-
-      // Modern case corrections (lowercase keys mapped to camelCase / correct case)
-      rainaccu: 'rainAccu',
-      gustaccu: 'gustAccu',
-      snowaccu: 'snowAccu',
-      currentstide: 'currentsTide',
-      efitemp: 'efiTemp',
-      efiwind: 'efiWind',
-      efirain: 'efiRain',
-      capalerts: 'capAlerts',
-      soilmoisture40: 'soilMoisture40',
-      soilmoisture100: 'soilMoisture100',
-      moistureanom40: 'moistureAnom40',
-      moistureanom100: 'moistureAnom100',
-    };
-
-    return overlayMap[rawOverlay] || rawOverlay;
+    return normalizeOverlay(rawOverlay);
   }
 
   /** Resolve map center lat/lon from zone entity or explicit config values */
@@ -655,54 +618,19 @@ export class WindyCard extends LitElement implements LovelaceCard {
     if (zoom > 11) zoom = 11;
 
     const overlay = this._getOverlay();
-    const isRadarOrSatellite = ['radar', 'satellite'].includes(overlay);
-    const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'turbulence', 'icing', 'cape'].includes(
-      overlay,
-    );
+    const isRadarOrSatellite = isImageryOverlay(overlay);
 
-    const hasFixedProduct = [
-      'fwi',
-      'dfm10h',
-      'waves',
-      'swell1',
-      'swell2',
-      'swell3',
-      'wwaves',
-      'sst',
-      'currents',
-      'currentsTide',
-      'airQ',
-      'no2',
-      'pm2p5',
-      'aod550',
-      'gtco3',
-      'tcso2',
-      'go3',
-      'cosc',
-      'dustsm',
-      'efiTemp',
-      'efiWind',
-      'efiRain',
-      'capAlerts',
-      'drought40',
-      'drought100',
-      'soilMoisture40',
-      'soilMoisture100',
-      'moistureAnom40',
-      'moistureAnom100',
-    ].includes(overlay);
-
-    let product = isRadarOrSatellite || hasFixedProduct ? '' : (this._config.product ?? 'ecmwf');
+    let product = isRadarOrSatellite || hasFixedProduct(overlay) ? '' : (this._config.product ?? 'ecmwf');
 
     // Accumulation layers (rainAccu, snowAccu, gustAccu) only support ECMWF and GFS.
     // Fall back to ECMWF if an unsupported product is configured.
-    if (['rainaccu', 'snowaccu', 'gustaccu'].includes(overlay.toLowerCase())) {
+    if (isAccumulationOverlay(overlay)) {
       if (product && !['ecmwf', 'gfs'].includes(product)) {
         product = 'ecmwf';
       }
     }
 
-    const level = supportsElevation ? (this._config.level ?? 'surface') : 'surface';
+    const level = supportsElevation(overlay) ? (this._config.level ?? 'surface') : 'surface';
 
     const metricTemp = this._config.metric_temp ?? 'default';
     const metricRain = this._config.metric_rain ?? 'default';

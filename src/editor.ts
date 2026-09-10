@@ -5,6 +5,7 @@ import { fireEvent } from './utils.js';
 import { localize } from './localize.js';
 import editorStyles from './styles/editor.styles.scss';
 import { EDITOR_ELEMENT_NAME } from './constants.js';
+import { isImageryOverlay, supportsElevation, supportsProduct } from './overlays.js';
 
 export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -20,9 +21,12 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   }
 
   private _getSchema() {
-    const overlay = (this._config.overlay || 'wind').toLowerCase();
-    const isRadarOrSatellite = ['radar', 'satellite'].includes(overlay);
-    const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'cat', 'icing', 'cap'].includes(overlay);
+    // Through the shared tables, so a legacy id in an old config is judged by the same
+    // rules as the canonical one the dropdown writes.
+    const overlay = this._config.overlay || 'wind';
+    const isRadarOrSatellite = isImageryOverlay(overlay);
+    const hasElevation = supportsElevation(overlay);
+    const hasProduct = supportsProduct(overlay);
     const isForecastOnly = this._config.default_mode === 'forecast_only';
     const isMapOnly = this._config.default_mode === 'map_only';
 
@@ -368,7 +372,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                   },
                 },
 
-                ...(supportsElevation
+                ...(hasElevation
                   ? [
                       {
                         name: 'level',
@@ -438,7 +442,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                       } as HaFormSchema,
                     ]
                   : []),
-                ...(!isRadarOrSatellite
+                ...(hasProduct
                   ? [
                       {
                         name: 'product',

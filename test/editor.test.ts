@@ -27,6 +27,24 @@ describe('WindyCardEditor', () => {
       expect(flatSchema.some((s) => s.name === 'level')).toBe(true);
     });
 
+    // The dropdown writes Windy's canonical ids, so those are the ones the schema has
+    // to recognise - it used to test for the retired aliases and hid the selector for
+    // exactly the two layers that reach it under a new name.
+    it.each(['turbulence', 'cape'])('returns elevation level selector for the %s overlay', (overlay) => {
+      const editor = makeEditor({ overlay });
+      const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+      const flatSchema = flattenSchema(schema);
+      expect(flatSchema.some((s) => s.name === 'level')).toBe(true);
+    });
+
+    // A config written before the rename still says cat/cap, and it still means the same layer.
+    it.each(['cat', 'cap'])('returns elevation level selector for the legacy %s overlay', (overlay) => {
+      const editor = makeEditor({ overlay });
+      const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+      const flatSchema = flattenSchema(schema);
+      expect(flatSchema.some((s) => s.name === 'level')).toBe(true);
+    });
+
     it('hides elevation level selector for radar overlay', () => {
       const editor = makeEditor({ overlay: 'radar' });
       const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
@@ -39,6 +57,25 @@ describe('WindyCardEditor', () => {
       const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
       const flatSchema = flattenSchema(schema);
       expect(flatSchema.some((s) => s.name === 'product')).toBe(false);
+    });
+
+    // These layers come from one fixed source. The card drops `product` from the URL for
+    // them, so offering the dropdown only promises a choice that has no effect.
+    it.each(['fwi', 'sst', 'pm2p5', 'capAlerts', 'currentsTide'])(
+      'hides the product selector for the fixed-product %s overlay',
+      (overlay) => {
+        const editor = makeEditor({ overlay });
+        const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+        const flatSchema = flattenSchema(schema);
+        expect(flatSchema.some((s) => s.name === 'product')).toBe(false);
+      },
+    );
+
+    it('offers the product selector for a model-driven overlay', () => {
+      const editor = makeEditor({ overlay: 'wind' });
+      const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+      const flatSchema = flattenSchema(schema);
+      expect(flatSchema.some((s) => s.name === 'product')).toBe(true);
     });
 
     it('hides map options when in forecast_only mode', () => {

@@ -93,15 +93,15 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 ### Map Layer
 
-| Name                 | Type   | Default   | Description                                                                                                                                                        |
-| -------------------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `overlay_entity`     | string | —         | HA entity whose state is used as the map overlay (overrides `overlay`)                                                                                             |
-| `overlay`            | string | `wind`    | Weather layer to show on the map (see [Available Map Layers](#available-map-layers-overlay)).                                                                      |
-| `level`              | string | `surface` | Altitude level (only for compatible layers)                                                                                                                        |
-| `product`            | string | `ecmwf`   | Forecast model to display on the map (see [Available Forecast Models](#available-forecast-models-product--forecast_product)). Hidden for radar/satellite overlays. |
-| `zoom`               | number | `5`       | Zoom level (3–11)                                                                                                                                                  |
-| `overlay_loop`       | list   | —         | Sequence of weather layers to automatically cycle through (overrides `overlay` and `overlay_entity`). Can be a YAML list or a comma-separated string.              |
-| `overlay_loop_delay` | number | `30`      | Time in seconds to show each layer in the `overlay_loop` before switching to the next one                                                                          |
+| Name                 | Type   | Default   | Description                                                                                                                                                                                |
+| -------------------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `overlay_entity`     | string | —         | HA entity whose state is used as the map overlay (overrides `overlay`). A state that is not a layer — including `unavailable` and `unknown` — keeps `overlay` and is reported on the card. |
+| `overlay`            | string | `wind`    | Weather layer to show on the map (see [Available Map Layers](#available-map-layers-overlay)).                                                                                              |
+| `level`              | string | `surface` | Altitude level (only for compatible layers)                                                                                                                                                |
+| `product`            | string | `ecmwf`   | Forecast model to display on the map (see [Available Forecast Models](#available-forecast-models-product--forecast_product)). Hidden for radar/satellite overlays.                         |
+| `zoom`               | number | `5`       | Zoom level (3–11)                                                                                                                                                                          |
+| `overlay_loop`       | list   | —         | Sequence of weather layers to automatically cycle through (overrides `overlay` and `overlay_entity`). Can be a YAML list or a comma-separated string.                                      |
+| `overlay_loop_delay` | number | `30`      | Time in seconds to show each layer in the `overlay_loop` before switching to the next one                                                                                                  |
 
 ### Forecast Options
 
@@ -111,11 +111,17 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 
 ### View / Size
 
-| Name           | Type    | Default | Description                                                                              |
-| -------------- | ------- | ------- | ---------------------------------------------------------------------------------------- |
-| `aspect_ratio` | string  | `16:9`  | Responsive ratio (`16:9`, `4:3`, `3:2`, `1:1`, `2:1`). Set to empty to use fixed height. |
-| `height`       | number  | `450`   | Fixed height in px (used when aspect_ratio is empty)                                     |
-| `no_padding`   | boolean | `false` | Remove padding and border from `ha-card` (applies to all modes)                          |
+| Name           | Type    | Default | Description                                                                                      |
+| -------------- | ------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `aspect_ratio` | string  | —       | Responsive ratio of the **map** (`16:9`, `4:3`, `3:2`, `1:1`, `2:1`). New cards start at `16:9`. |
+| `height`       | number  | —       | Fixed height in px. Takes precedence over `aspect_ratio`.                                        |
+| `no_padding`   | boolean | `false` | Remove padding and border from `ha-card` (applies to all modes)                                  |
+
+`height` wins wherever both are set — clear it to go back to a responsive card. With
+neither, the map falls back to 450px.
+
+`aspect_ratio` applies to the map only. The spot forecast is a fixed-layout widget and keeps its
+own height (185px, or `height` if you set one) in every mode.
 
 ### Units
 

@@ -14,7 +14,7 @@
     "declaration": false,
     "sourceMap": true,
     "lib": ["ES2022", "DOM"],
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "node"]
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.ts", "src/declarations.d.ts"],
   "exclude": ["node_modules", "dist"]

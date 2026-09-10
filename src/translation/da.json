@@ -9,7 +9,17 @@
     "enable_interaction": "Aktivér interaktion",
     "disable_interaction": "Deaktivér interaktion",
     "fullscreen": "Fuld skærm",
-    "exit_fullscreen": "Afslut fuld skærm"
+    "exit_fullscreen": "Afslut fuld skærm",
+    "map_frame": "Windy-kort",
+    "forecast_frame": "Windy-stedprognose",
+    "entity_problem": {
+      "not_found": "{entity} findes ikke.",
+      "unavailable": "{entity} er utilgængelig.",
+      "unknown": "{entity} har endnu ingen tilstand.",
+      "wrong_domain": "{entity} er ikke en understøttet enhedstype.",
+      "unknown_value": "{entity} melder “{value}”, som ikke er et Windy-lag.",
+      "no_coordinates": "{entity} har ingen attributter for breddegrad og længdegrad."
+    }
   },
   "editor": {
     "sections": {

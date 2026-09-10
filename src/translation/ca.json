@@ -9,7 +9,17 @@
     "enable_interaction": "Activar la interacció",
     "disable_interaction": "Desactivar la interacció",
     "fullscreen": "Pantalla completa",
-    "exit_fullscreen": "Sortir de la pantalla completa"
+    "exit_fullscreen": "Sortir de la pantalla completa",
+    "map_frame": "Mapa de Windy",
+    "forecast_frame": "Previsió local de Windy",
+    "entity_problem": {
+      "not_found": "{entity} no existeix.",
+      "unavailable": "{entity} no està disponible.",
+      "unknown": "{entity} encara no té estat.",
+      "wrong_domain": "{entity} no és un tipus d'entitat compatible.",
+      "unknown_value": "{entity} indica «{value}», que no és una capa de Windy.",
+      "no_coordinates": "{entity} no té atributs de latitud i longitud."
+    }
   },
   "editor": {
     "sections": {

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render } from 'lit';
 import '../src/windy-card.js';
 import { WindyCard } from '../src/windy-card.js';
-import type { WindyCardConfig } from '../src/types.js';
+import type { HomeAssistant, WindyCardConfig } from '../src/types.js';
 
 // Minimal HomeAssistant mock
 const mockHass = {
@@ -47,15 +47,79 @@ function getForecastIframeSrc(card: WindyCard): string {
   return url as string;
 }
 
+/** Renders the whole card into a detached container, so attributes and rows can be read. */
+function renderCard(card: WindyCard): HTMLElement {
+  const container = document.createElement('div');
+  render((card as unknown as { render: () => unknown }).render(), container);
+  return container;
+}
+
 describe('WindyCard', () => {
   describe('getStubConfig()', () => {
-    it('returns a valid stub config', () => {
+    it('returns only what differs from the defaults', () => {
       const stub = WindyCard.getStubConfig();
+
       expect(stub.type).toBeUndefined(); // type is added by HA
-      expect(stub.overlay).toBe('wind');
-      expect(stub.zoom).toBe(5);
       expect(stub.aspect_ratio).toBe('16:9');
-      expect(stub.metric_temp).toBe('default');
+      // Everything below is exactly what the card does when it is not told, so writing
+      // it into the user's dashboard would only pin today's defaults forever.
+      for (const key of ['default_mode', 'overlay', 'zoom', 'product', 'level', 'metric_temp', 'metric_rain']) {
+        expect(stub[key], key).toBeUndefined();
+      }
+    });
+
+    it('does not throw before hass is set', () => {
+      expect(() => WindyCard.getStubConfig()).not.toThrow();
+      expect(() => WindyCard.getStubConfig(undefined, [])).not.toThrow();
+    });
+
+    it('picks the first zone the user drew', () => {
+      const stub = WindyCard.getStubConfig(undefined, ['sensor.temperature', 'zone.home', 'zone.sailing_club']);
+      expect(stub.location).toBe('zone.sailing_club');
+    });
+
+    it('falls back to the states when no entity list is offered', () => {
+      const hass = {
+        states: { 'light.kitchen': {}, 'zone.allotment': {} },
+      } as unknown as HomeAssistant;
+      expect(WindyCard.getStubConfig(hass).location).toBe('zone.allotment');
+    });
+
+    // The card centres on the instance's own coordinates by itself, so naming zone.home
+    // would bake in what already happens.
+    it('leaves the location out when only zone.home exists', () => {
+      const stub = WindyCard.getStubConfig(undefined, ['zone.home', 'sensor.wind']);
+      expect(stub.location).toBeUndefined();
+    });
+  });
+
+  describe('getGridOptions()', () => {
+    it('asks for the full width and a box the map fits in', () => {
+      const options = makeCard({ aspect_ratio: '16:9' }).getGridOptions();
+
+      expect(options.columns).toBe(12);
+      expect(options.min_columns).toBe(6);
+      expect(options.min_rows).toBe(2);
+      expect(options.rows).toBeGreaterThanOrEqual(8);
+    });
+
+    it('asks for less room for the forecast panel than for the map', () => {
+      const forecast = makeCard({ default_mode: 'forecast_only' }).getGridOptions();
+      const map = makeCard({ default_mode: 'map_only' }).getGridOptions();
+
+      expect(forecast.rows).toBeLessThan(map.rows);
+    });
+
+    it('follows an explicit height', () => {
+      const small = makeCard({ height: 200 }).getGridOptions();
+      const large = makeCard({ height: 800 }).getGridOptions();
+
+      expect(large.rows).toBeGreaterThan(small.rows);
+    });
+
+    // HA asks the element for its grid options, and it may do so before setConfig().
+    it('answers before a config is set', () => {
+      expect(() => new WindyCard().getGridOptions()).not.toThrow();
     });
   });
 
@@ -352,10 +416,41 @@ describe('WindyCard', () => {
 
     it('uses configured metric values', () => {
       const card = makeCard({ overlay: 'wind', metric_temp: '°C', metric_rain: 'mm', metric_wind: 'km/h' });
+      // Read back through URL, not by substring: the degree sign and the slash are
+      // percent-encoded in the query, and what matters is the value Windy decodes.
+      const params = new URL(getIframeSrc(card)).searchParams;
+      expect(params.get('metricTemp')).toBe('°C');
+      expect(params.get('metricRain')).toBe('mm');
+      expect(params.get('metricWind')).toBe('km/h');
+    });
+  });
+
+  describe('URL generation — encoding', () => {
+    it('encodes values that are not URL-safe', () => {
+      const card = makeCard({ overlay: 'wind', metric_temp: '°C', metric_wind: 'm/s' });
       const src = getIframeSrc(card);
-      expect(src).toContain('metricTemp=°C');
-      expect(src).toContain('metricRain=mm');
-      expect(src).toContain('metricWind=km/h');
+
+      // Raw in the query string these end the parameter early or change its meaning.
+      expect(src).not.toContain('°C');
+      expect(src).not.toContain('m/s');
+      expect(new URL(src).searchParams.get('metricWind')).toBe('m/s');
+    });
+
+    it('keeps a value with a separator in it from becoming another parameter', () => {
+      const card = makeCard({ overlay: 'wind&pressure=true&zoom=11' });
+      const params = new URL(getIframeSrc(card)).searchParams;
+
+      expect(params.get('overlay')).toBe('wind&pressure=true&zoom=11');
+      expect(params.get('pressure')).toBeNull();
+      expect(params.get('zoom')).toBe('5');
+    });
+
+    it('encodes the forecast parameters too', () => {
+      const card = makeCard({ metric_wind: 'm/s' });
+      const src = getForecastIframeSrc(card);
+
+      expect(src).not.toContain('m/s');
+      expect(new URL(src).searchParams.get('metricWind')).toBe('m/s');
     });
   });
 
@@ -444,6 +539,180 @@ describe('WindyCard', () => {
       });
 
       expect(hasResetButtonValue).toBe(false);
+    });
+  });
+
+  describe('overlay_entity resolution', () => {
+    function makeCardWith(states: Record<string, unknown>, config: Partial<WindyCardConfig>): WindyCard {
+      const card = new WindyCard();
+      card.hass = { ...mockHass, states } as unknown as typeof card.hass;
+      card.setConfig({ type: 'custom:windy-card', ...config });
+      return card;
+    }
+
+    // `unavailable`/`unknown` are Home Assistant saying "no value". Sent on as a layer
+    // name they leave the Windy map blank, which looks like a broken card.
+    it.each(['unavailable', 'unknown'])('keeps the configured layer while the entity state is %s', (state) => {
+      const card = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state, attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      const src = getIframeSrc(card);
+
+      expect(src).toContain('overlay=rain');
+      expect(src).not.toContain(`overlay=${state}`);
+    });
+
+    it('keeps the configured layer while the entity has no state at all', () => {
+      const card = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: '', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+    });
+
+    it('keeps the configured layer when the state is not a Windy layer at all', () => {
+      const card = makeCardWith(
+        { 'binary_sensor.window': { entity_id: 'binary_sensor.window', state: 'on', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'binary_sensor.window' },
+      );
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+    });
+
+    it('keeps the configured layer when the entity does not exist', () => {
+      const card = makeCardWith({}, { overlay: 'rain', overlay_entity: 'sensor.gone' });
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+    });
+
+    it('follows a usable state, aliases included', () => {
+      const clouds = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: 'clouds', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      expect(getIframeSrc(clouds)).toContain('overlay=clouds');
+
+      const legacy = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: 'cat', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      expect(getIframeSrc(legacy)).toContain('overlay=turbulence');
+    });
+
+    it('reports the unusable entity instead of failing silently', () => {
+      const card = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: 'unavailable', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      const problems = renderCard(card).querySelectorAll('.entity-problem');
+
+      expect(problems).toHaveLength(1);
+      expect(problems[0].textContent).toContain('sensor.layer');
+    });
+
+    it('names the useless value when the state is not a layer', () => {
+      const card = makeCardWith(
+        { 'binary_sensor.window': { entity_id: 'binary_sensor.window', state: 'on', attributes: {} } },
+        { overlay_entity: 'binary_sensor.window' },
+      );
+      const problem = renderCard(card).querySelector('.entity-problem');
+
+      expect(problem?.textContent).toContain('binary_sensor.window');
+      expect(problem?.textContent).toContain('on');
+    });
+
+    it('stays quiet while the overlay loop overrides the entity anyway', () => {
+      const card = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: 'unavailable', attributes: {} } },
+        { overlay_entity: 'sensor.layer', overlay_loop: ['wind', 'rain'] },
+      );
+      expect(renderCard(card).querySelectorAll('.entity-problem')).toHaveLength(0);
+    });
+
+    it('reports a location entity that carries no coordinates', () => {
+      const card = makeCardWith(
+        { 'zone.nowhere': { entity_id: 'zone.nowhere', state: 'zoning', attributes: {} } },
+        { location: 'zone.nowhere' },
+      );
+      const problem = renderCard(card).querySelector('.entity-problem');
+
+      expect(problem?.textContent).toContain('zone.nowhere');
+    });
+
+    it('paints no problem row when every configured entity resolves', () => {
+      const card = makeCardWith(
+        {
+          'sensor.layer': { entity_id: 'sensor.layer', state: 'clouds', attributes: {} },
+          'zone.spot': { entity_id: 'zone.spot', state: 'zoning', attributes: { latitude: 1, longitude: 2 } },
+        },
+        { overlay_entity: 'sensor.layer', location: 'zone.spot' },
+      );
+      expect(renderCard(card).querySelectorAll('.entity-problem')).toHaveLength(0);
+    });
+  });
+
+  describe('aspect ratio applies to the map only', () => {
+    function renderPanel(card: WindyCard, mode: 'map' | 'forecast'): HTMLElement {
+      const container = document.createElement('div');
+      const method = mode === 'map' ? '_renderMap' : '_renderForecast';
+      render((card as unknown as Record<string, () => unknown>)[method](), container);
+      return container;
+    }
+
+    it('wraps the map in the ratio wrapper', () => {
+      const container = renderPanel(makeCard({ aspect_ratio: '16:9' }), 'map');
+      expect(container.querySelector('.iframe-container.ratio-wrapper')).not.toBeNull();
+    });
+
+    // The forecast is a fixed-layout widget - given the map's ratio it just gained a
+    // margin of empty space below it.
+    it('leaves the forecast at its own height', () => {
+      const container = renderPanel(makeCard({ aspect_ratio: '16:9' }), 'forecast');
+
+      expect(container.querySelector('.ratio-wrapper')).toBeNull();
+      expect(container.querySelector('iframe')?.getAttribute('height')).toBe('185');
+    });
+
+    it('still honours an explicit height on the forecast', () => {
+      const container = renderPanel(makeCard({ aspect_ratio: '16:9', height: 320 }), 'forecast');
+      expect(container.querySelector('iframe')?.getAttribute('height')).toBe('320');
+    });
+  });
+
+  describe('accessible names', () => {
+    function renderPanel(card: WindyCard, mode: 'map' | 'forecast' = 'map'): HTMLElement {
+      const container = document.createElement('div');
+      const method = mode === 'map' ? '_renderMap' : '_renderForecast';
+      render((card as unknown as Record<string, () => unknown>)[method](), container);
+      return container;
+    }
+
+    // Icon-only buttons announce as "button" and nothing else without a label.
+    it('labels every toolbar button', () => {
+      const container = renderPanel(makeCard({ static_map: true }));
+
+      for (const selector of ['.reset-button', '.static-toggle-button', '.fullscreen-button']) {
+        const button = container.querySelector(selector);
+        expect(button, selector).not.toBeNull();
+        expect(button?.getAttribute('aria-label'), selector).toBeTruthy();
+      }
+    });
+
+    it('says which way the two toggles stand', () => {
+      const locked = renderPanel(makeCard({ static_map: true }));
+      expect(locked.querySelector('.static-toggle-button')?.getAttribute('aria-pressed')).toBe('true');
+      expect(locked.querySelector('.fullscreen-button')?.getAttribute('aria-pressed')).toBe('false');
+
+      const unlocked = renderPanel(makeCard({}));
+      expect(unlocked.querySelector('.static-toggle-button')?.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    // Hardcoded English is what the localize() call exists to avoid.
+    it('titles both frames from the translations', () => {
+      const card = makeCard({});
+      card.hass = { ...mockHass, language: 'de' } as unknown as typeof card.hass;
+
+      expect(renderPanel(card, 'map').querySelector('iframe')?.getAttribute('title')).toBe('Windy-Karte');
+      expect(renderPanel(card, 'forecast').querySelector('iframe')?.getAttribute('title')).toBe('Windy-Ortsvorhersage');
     });
   });
 
@@ -1049,6 +1318,21 @@ describe('WindyCard', () => {
 
       card.disconnectedCallback();
       vi.useRealTimers();
+    });
+  });
+
+  describe('Duplicate resource registration', () => {
+    it('should not throw when the bundle is evaluated a second time', async () => {
+      vi.resetModules();
+      await expect(import('../src/windy-card.js')).resolves.toBeDefined();
+    });
+
+    it('should register the card in customCards only once when loaded twice', async () => {
+      vi.resetModules();
+      await import('../src/windy-card.js');
+
+      const entries = (window.customCards ?? []).filter((card) => card.type === 'windy-card');
+      expect(entries).toHaveLength(1);
     });
   });
 });

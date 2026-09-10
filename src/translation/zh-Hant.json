@@ -9,7 +9,17 @@
     "enable_interaction": "啟用互動",
     "disable_interaction": "禁用互動",
     "fullscreen": "全螢幕",
-    "exit_fullscreen": "結束全螢幕"
+    "exit_fullscreen": "結束全螢幕",
+    "map_frame": "Windy 地圖",
+    "forecast_frame": "Windy 地點預報",
+    "entity_problem": {
+      "not_found": "{entity} 不存在。",
+      "unavailable": "{entity} 無法使用。",
+      "unknown": "{entity} 尚無狀態。",
+      "wrong_domain": "{entity} 不是支援的實體類型。",
+      "unknown_value": "{entity} 回報「{value}」，這不是 Windy 圖層。",
+      "no_coordinates": "{entity} 沒有經緯度屬性。"
+    }
   },
   "editor": {
     "sections": {

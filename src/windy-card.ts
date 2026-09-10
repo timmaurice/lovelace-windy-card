@@ -1,15 +1,23 @@
 import { LitElement, html, nothing, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCard, LovelaceCardEditor, WindyCardConfig } from './types.js';
 import { localize } from './localize.js';
 import cardStyles from './styles/card.styles.scss';
-
-const ELEMENT_NAME = 'windy-card';
-const EDITOR_ELEMENT_NAME = `${ELEMENT_NAME}-editor`;
+import { ELEMENT_NAME, EDITOR_ELEMENT_NAME } from './constants.js';
+import { resolveEntity } from './entity.js';
+import {
+  hasFixedProduct,
+  isKnownOverlay,
+  isAccumulationOverlay,
+  isImageryOverlay,
+  normalizeOverlay,
+  supportsElevation,
+} from './overlays.js';
 
 type ViewMode = 'map' | 'forecast';
 
-@customElement(ELEMENT_NAME)
+const EMBED_URL = 'https://embed.windy.com/embed.html';
+
 export class WindyCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config!: WindyCardConfig;
@@ -206,22 +214,60 @@ export class WindyCard extends LitElement implements LovelaceCard {
     return document.createElement(EDITOR_ELEMENT_NAME) as unknown as LovelaceCardEditor;
   }
 
-  public static getStubConfig(): Record<string, unknown> {
-    return {
-      default_mode: 'map',
-      metric_temp: 'default',
-      metric_rain: 'default',
-      metric_wind: 'default',
-      zoom: 5,
-      overlay: 'wind',
-      product: 'ecmwf',
-      level: 'surface',
-      aspect_ratio: '16:9',
-    };
+  /**
+   * What "Add card" starts the user off with.
+   *
+   * Only keys that differ from what the card does anyway: a stub that restates the
+   * defaults writes them into the user's dashboard as noise, and worse, pins them - the
+   * day a default changes, every card added before that day keeps the old value with
+   * nobody having chosen it. `aspect_ratio` is the one real choice here, since without
+   * it the map falls back to a fixed pixel height instead of following the column.
+   *
+   * Home Assistant may call this before it has a `hass` to give, so nothing here may
+   * assume one.
+   */
+  public static getStubConfig(hass?: HomeAssistant, entities?: string[]): Record<string, unknown> {
+    const stub: Record<string, unknown> = { aspect_ratio: '16:9' };
+
+    // A zone the user drew is a place worth centring on. `zone.home` is not offered:
+    // the card already falls back to the instance's own coordinates, so naming it would
+    // only bake in what happens anyway.
+    const candidates = entities?.length ? entities : Object.keys(hass?.states ?? {});
+    const location = candidates.find((entityId) => entityId.startsWith('zone.') && entityId !== 'zone.home');
+    if (location) {
+      stub.location = location;
+    }
+
+    return stub;
   }
 
   public getCardSize(): number {
     return 10;
+  }
+
+  /**
+   * Sections dashboards lay cards out in grid rows instead of letting them size
+   * themselves, and a card that does not answer is given a default box that has nothing
+   * to do with the map inside it. A row is 56px plus the 8px gap between rows, so a
+   * pixel height converts directly. With an aspect ratio the height follows the column
+   * width, which is not knowable here, so the panel's own default height is the honest
+   * approximation - the user can still drag the card to any size from there.
+   */
+  public getGridOptions(): Record<string, number> {
+    const ROW_HEIGHT = 64;
+    const mode = this._config?.default_mode;
+    const isForecastOnly = mode === 'forecast_only';
+    const hasTabs = mode !== 'map_only' && !isForecastOnly;
+    const panelHeight = this._config?.height ?? (isForecastOnly ? 185 : 450);
+    // Card padding, plus the tab strip where there is one.
+    const chrome = (hasTabs ? 48 : 0) + (this._config?.no_padding ? 0 : 32);
+
+    return {
+      rows: Math.max(2, Math.ceil((panelHeight + chrome) / ROW_HEIGHT)),
+      columns: 12,
+      min_rows: 2,
+      min_columns: 6,
+    };
   }
 
   private get _isMapOnly(): boolean {
@@ -273,59 +319,17 @@ export class WindyCard extends LitElement implements LovelaceCard {
       rawOverlay = (loop[idx] ?? 'wind').toLowerCase();
     } else {
       rawOverlay = (this._config.overlay ?? 'wind').toLowerCase();
-      if (this._config.overlay_entity && this.hass?.states) {
-        const entityState = this.hass.states[this._config.overlay_entity];
-        if (entityState?.state) {
-          rawOverlay = entityState.state.toLowerCase();
+      // Only a usable state that actually names a layer replaces the configured one -
+      // anything else keeps the fallback and is reported by _entityProblems() instead.
+      if (this._config.overlay_entity) {
+        const resolved = resolveEntity(this.hass, this._config.overlay_entity);
+        if (resolved.ok && isKnownOverlay(resolved.state)) {
+          rawOverlay = resolved.state.toLowerCase();
         }
       }
     }
 
-    const overlayMap: Record<string, string> = {
-      // Legacy mappings (lowercase keys)
-      raincum: 'rainAccu',
-      gusts: 'gust',
-      windcum: 'gustAccu',
-      cat: 'turbulence',
-      snow: 'snowAccu',
-      snowdepth: 'snowcover',
-      freezing: 'deg0',
-      wetbulb: 'wetbulbtemp',
-      uv: 'uvindex',
-      cloudbase: 'cbase',
-      cap: 'cape',
-      thermals: 'ccl',
-      swell: 'swell1',
-      wwave: 'wwaves',
-      tidalcurrents: 'currentsTide',
-      pm25: 'pm2p5',
-      aerosol: 'aod550',
-      ozone: 'gtco3',
-      so2: 'tcso2',
-      surfaceozone: 'go3',
-      co: 'cosc',
-      dust: 'dustsm',
-      extreme: 'efiWind',
-      warnings: 'capAlerts',
-      drought: 'drought40',
-      fire: 'fwi',
-
-      // Modern case corrections (lowercase keys mapped to camelCase / correct case)
-      rainaccu: 'rainAccu',
-      gustaccu: 'gustAccu',
-      snowaccu: 'snowAccu',
-      currentstide: 'currentsTide',
-      efitemp: 'efiTemp',
-      efiwind: 'efiWind',
-      efirain: 'efiRain',
-      capalerts: 'capAlerts',
-      soilmoisture40: 'soilMoisture40',
-      soilmoisture100: 'soilMoisture100',
-      moistureanom40: 'moistureAnom40',
-      moistureanom100: 'moistureAnom100',
-    };
-
-    return overlayMap[rawOverlay] || rawOverlay;
+    return normalizeOverlay(rawOverlay);
   }
 
   /** Resolve map center lat/lon from zone entity or explicit config values */
@@ -333,14 +337,15 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const defaultLat = this.hass?.config?.latitude ?? 51.9503;
     const defaultLon = this.hass?.config?.longitude ?? 7.9855;
 
-    if (this._config.location && this.hass?.states) {
-      const zoneState = this.hass.states[this._config.location];
-      if (zoneState) {
-        const lat = zoneState.attributes['latitude'] as number | undefined;
-        const lon = zoneState.attributes['longitude'] as number | undefined;
-        if (lat !== undefined && lon !== undefined) {
-          return { lat, lon };
-        }
+    // Deliberately not resolved through resolveEntity(): the map needs coordinates, not a
+    // state, and a device tracker that has gone unavailable still carries its last known
+    // position. Refusing that would move the map instead of leaving it where it was.
+    const locationEntity = this._config.location ? this.hass?.states?.[this._config.location] : undefined;
+    if (locationEntity) {
+      const lat = locationEntity.attributes['latitude'] as number | undefined;
+      const lon = locationEntity.attributes['longitude'] as number | undefined;
+      if (lat !== undefined && lon !== undefined) {
+        return { lat, lon };
       }
     }
 
@@ -363,6 +368,63 @@ export class WindyCard extends LitElement implements LovelaceCard {
     return `${((h / w) * 100).toFixed(4)}%`;
   }
 
+  /**
+   * The entity options that cannot be used right now, with the reason.
+   *
+   * Recomputed on every render from `hass` and the config rather than remembered, so it
+   * cannot go stale and needs no reactive state of its own.
+   */
+  private _entityProblems(): { entityId: string; reason: string; value?: string }[] {
+    const problems: { entityId: string; reason: string; value?: string }[] = [];
+    const loop = this._config.overlay_loop;
+    const loopWins = Array.isArray(loop) && loop.length > 0;
+
+    // The loop overrides the entity, so a broken entity is not worth a row while it runs.
+    if (this._config.overlay_entity && !loopWins) {
+      const resolved = resolveEntity(this.hass, this._config.overlay_entity);
+      if (!resolved.ok) {
+        problems.push({ entityId: resolved.entityId, reason: resolved.reason });
+      } else if (!isKnownOverlay(resolved.state)) {
+        problems.push({ entityId: this._config.overlay_entity, reason: 'unknown_value', value: resolved.state });
+      }
+    }
+
+    if (this._config.location) {
+      const entity = this.hass?.states?.[this._config.location];
+      if (!entity) {
+        problems.push({ entityId: this._config.location, reason: 'not_found' });
+      } else if (entity.attributes['latitude'] === undefined || entity.attributes['longitude'] === undefined) {
+        // Any domain may carry coordinates, so this is about the attributes, not the domain.
+        problems.push({ entityId: this._config.location, reason: 'no_coordinates' });
+      }
+    }
+
+    return problems;
+  }
+
+  private _renderEntityProblems() {
+    const problems = this._entityProblems();
+    if (!problems.length) return nothing;
+
+    return html`
+      <div class="entity-problems">
+        ${problems.map(
+          (problem) => html`
+            <div class="entity-problem" role="alert">
+              <ha-icon icon="mdi:alert-outline"></ha-icon>
+              <span
+                >${localize(this.hass, `component.windy-card.card.entity_problem.${problem.reason}`, {
+                  entity: problem.entityId,
+                  value: problem.value ?? '',
+                })}</span
+              >
+            </div>
+          `,
+        )}
+      </div>
+    `;
+  }
+
   protected render() {
     if (!this._config || !this.hass) {
       return html``;
@@ -375,6 +437,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
       return html`
         <ha-card .header=${this._config.title} class=${noPadding ? 'no-padding' : ''}>
           <div class="card-content">
+            ${this._renderEntityProblems()}
             <div class="content">${this._renderMap()}</div>
           </div>
         </ha-card>
@@ -386,6 +449,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
       return html`
         <ha-card .header=${this._config.title} class=${noPadding ? 'no-padding' : ''}>
           <div class="card-content">
+            ${this._renderEntityProblems()}
             <div class="content">${this._renderForecast()}</div>
           </div>
         </ha-card>
@@ -396,6 +460,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
     return html`
       <ha-card .header=${this._config.title} class=${noPadding ? 'no-padding' : ''}>
         <div class="card-content">
+          ${this._renderEntityProblems()}
           <div class="modes" role="tablist" aria-orientation="horizontal" @keydown=${this._handleTabKeyDown}>
             <button
               role="tab"
@@ -543,8 +608,11 @@ export class WindyCard extends LitElement implements LovelaceCard {
     showResetButton: boolean = false,
     respectStaticLock: boolean = true,
     allowFullscreen: boolean = false,
+    useAspectRatio: boolean = true,
   ) {
-    const ratioPadding = this._getRatioPadding();
+    // `aspect_ratio` sizes the map. The spot forecast is a widget of its own with a fixed
+    // layout, so stretching it to the map's ratio only padded it with empty space.
+    const ratioPadding = useAspectRatio ? this._getRatioPadding() : null;
     const height = this._config.height;
     const isFullscreen = allowFullscreen && this._isFullscreen;
 
@@ -557,44 +625,54 @@ export class WindyCard extends LitElement implements LovelaceCard {
     // overlay's location dot in the right place.
     const allow = this._config.allow_geolocation ? 'geolocation' : nothing;
 
+    // Every toolbar button is an icon and nothing else, so without a label a screen
+    // reader announces "button" and no more. The label is the same string the tooltip
+    // shows, and the two toggles also say which way they currently stand.
+    const resetLabel = localize(this.hass, 'component.windy-card.card.reset_map') ?? 'Reset Map';
     const resetButton = showResetButton
       ? html`<button
           class="action-button reset-button"
           @click=${this._resetMap}
-          title="${localize(this.hass, 'component.windy-card.card.reset_map') ?? 'Reset Map'}"
+          title="${resetLabel}"
+          aria-label="${resetLabel}"
         >
-          <ha-icon icon="mdi:crosshairs-gps"></ha-icon>
+          <ha-icon icon="mdi:crosshairs-gps" aria-hidden="true"></ha-icon>
         </button>`
       : '';
 
     // Only meaningful where the lock actually disables interaction (the map) — showing it
     // on the forecast panel would suggest it does something there, which it no longer does.
+    const staticLabel = this._isStatic
+      ? (localize(this.hass, 'component.windy-card.card.enable_interaction') ?? 'Enable Interaction')
+      : (localize(this.hass, 'component.windy-card.card.disable_interaction') ?? 'Disable Interaction');
     const toggleStaticButton = respectStaticLock
       ? html`<button
           class="action-button static-toggle-button ${this._isStatic ? 'is-active' : ''}"
           @click=${this._toggleStatic}
-          title="${
-            this._isStatic
-              ? (localize(this.hass, 'component.windy-card.card.enable_interaction') ?? 'Enable Interaction')
-              : (localize(this.hass, 'component.windy-card.card.disable_interaction') ?? 'Disable Interaction')
-          }"
+          title="${staticLabel}"
+          aria-label="${staticLabel}"
+          aria-pressed="${this._isStatic}"
         >
-          <ha-icon icon="${this._isStatic ? 'mdi:lock' : 'mdi:lock-open-variant'}"></ha-icon>
+          <ha-icon icon="${this._isStatic ? 'mdi:lock' : 'mdi:lock-open-variant'}" aria-hidden="true"></ha-icon>
         </button>`
       : '';
 
+    const fullscreenLabel = this._isFullscreen
+      ? (localize(this.hass, 'component.windy-card.card.exit_fullscreen') ?? 'Exit full screen')
+      : (localize(this.hass, 'component.windy-card.card.fullscreen') ?? 'Full screen');
     const fullscreenButton =
       allowFullscreen && this._fullscreenEnabled
         ? html`<button
             class="action-button fullscreen-button"
             @click=${this._toggleFullscreen}
-            title="${
-              this._isFullscreen
-                ? (localize(this.hass, 'component.windy-card.card.exit_fullscreen') ?? 'Exit full screen')
-                : (localize(this.hass, 'component.windy-card.card.fullscreen') ?? 'Full screen')
-            }"
+            title="${fullscreenLabel}"
+            aria-label="${fullscreenLabel}"
+            aria-pressed="${this._isFullscreen}"
           >
-            <ha-icon icon="${this._isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'}"></ha-icon>
+            <ha-icon
+              icon="${this._isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'}"
+              aria-hidden="true"
+            ></ha-icon>
           </button>`
         : '';
 
@@ -658,90 +736,82 @@ export class WindyCard extends LitElement implements LovelaceCard {
     if (zoom > 11) zoom = 11;
 
     const overlay = this._getOverlay();
-    const isRadarOrSatellite = ['radar', 'satellite'].includes(overlay);
-    const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'turbulence', 'icing', 'cape'].includes(
-      overlay,
-    );
+    const isRadarOrSatellite = isImageryOverlay(overlay);
 
-    const hasFixedProduct = [
-      'fwi',
-      'dfm10h',
-      'waves',
-      'swell1',
-      'swell2',
-      'swell3',
-      'wwaves',
-      'sst',
-      'currents',
-      'currentsTide',
-      'airQ',
-      'no2',
-      'pm2p5',
-      'aod550',
-      'gtco3',
-      'tcso2',
-      'go3',
-      'cosc',
-      'dustsm',
-      'efiTemp',
-      'efiWind',
-      'efiRain',
-      'capAlerts',
-      'drought40',
-      'drought100',
-      'soilMoisture40',
-      'soilMoisture100',
-      'moistureAnom40',
-      'moistureAnom100',
-    ].includes(overlay);
-
-    let product = isRadarOrSatellite || hasFixedProduct ? '' : (this._config.product ?? 'ecmwf');
+    let product = isRadarOrSatellite || hasFixedProduct(overlay) ? '' : (this._config.product ?? 'ecmwf');
 
     // Accumulation layers (rainAccu, snowAccu, gustAccu) only support ECMWF and GFS.
     // Fall back to ECMWF if an unsupported product is configured.
-    if (['rainaccu', 'snowaccu', 'gustaccu'].includes(overlay.toLowerCase())) {
+    if (isAccumulationOverlay(overlay)) {
       if (product && !['ecmwf', 'gfs'].includes(product)) {
         product = 'ecmwf';
       }
     }
 
-    const level = supportsElevation ? (this._config.level ?? 'surface') : 'surface';
+    const level = supportsElevation(overlay) ? (this._config.level ?? 'surface') : 'surface';
 
     const metricTemp = this._config.metric_temp ?? 'default';
     const metricRain = this._config.metric_rain ?? 'default';
     const metricWind = this._config.metric_wind ?? 'default';
 
-    const marker = this._config.show_marker ? `&detailLat=${lat}&detailLon=${lon}&marker=true` : '';
-    const detail = this._config.show_spot ? `&detailLat=${lat}&detailLon=${lon}&detail=true` : '';
+    const params = new URLSearchParams();
+    // Built through URLSearchParams rather than string concatenation: several of these
+    // values are user input (units like "m/s", a layer name that arrives from an entity
+    // state), and unencoded they either break the parameter or smuggle another one in.
+    params.set('type', 'map');
+    params.set('location', 'coordinates');
+    params.set('metricRain', metricRain);
+    params.set('metricTemp', metricTemp);
+    params.set('metricWind', metricWind);
+    params.set('zoom', String(zoom));
+    params.set('overlay', overlay);
+    if (product) params.set('product', product);
+    params.set('level', level);
+    params.set('lat', String(lat));
+    params.set('lon', String(lon));
 
-    const pressure = this._config.show_pressure && !isRadarOrSatellite ? '&pressure=true' : '';
-    const message = this._config.hide_message ? '&message=true' : '';
-    const autoplay = this._config.autoplay ? '&play=true' : '';
+    // Both the marker and the spot popup are placed at the same detail coordinates.
+    if (this._config.show_marker || this._config.show_spot) {
+      params.set('detailLat', String(lat));
+      params.set('detailLon', String(lon));
+    }
+    if (this._config.show_marker) params.set('marker', 'true');
+    if (this._config.show_spot) params.set('detail', 'true');
+    if (this._config.show_pressure && !isRadarOrSatellite) params.set('pressure', 'true');
+    if (this._config.hide_message) params.set('message', 'true');
+    if (this._config.autoplay) params.set('play', 'true');
+    params.set('lang', this.hass?.language || 'en');
 
-    const productParam = product ? `&product=${product}` : '';
-
-    const lang = this.hass?.language || 'en';
-
-    return `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}${productParam}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}${autoplay}&lang=${lang}`;
+    return `${EMBED_URL}?${params.toString()}`;
   }
 
   private _renderMap() {
-    return this._renderIframeWithWrapper(this._mapUrl, 450, 'Windy Map', true, true, true);
+    // The frame title is what a screen reader announces for the embed, so it belongs in
+    // the translations like every other user-facing string.
+    const title = localize(this.hass, 'component.windy-card.card.map_frame') ?? 'Windy Map';
+    return this._renderIframeWithWrapper(this._mapUrl, 450, title, true, true, true);
   }
 
   private _computeForecastUrl(): string {
     const { lat, lon } = this._getLocation();
-    const metricTemp = this._config.metric_temp ?? 'default';
-    const metricRain = this._config.metric_rain ?? 'default';
-    const metricWind = this._config.metric_wind ?? 'default';
-    const product = this._config.forecast_product ?? this._config.product ?? 'ecmwf';
-    const lang = this.hass?.language || 'en';
+    const params = new URLSearchParams();
+    params.set('type', 'forecast');
+    params.set('location', 'coordinates');
+    params.set('detail', 'true');
+    params.set('detailLat', String(lat));
+    params.set('detailLon', String(lon));
+    params.set('metricTemp', this._config.metric_temp ?? 'default');
+    params.set('metricRain', this._config.metric_rain ?? 'default');
+    params.set('metricWind', this._config.metric_wind ?? 'default');
+    params.set('product', this._config.forecast_product ?? this._config.product ?? 'ecmwf');
+    params.set('lang', this.hass?.language || 'en');
 
-    return `https://embed.windy.com/embed.html?type=forecast&location=coordinates&detail=true&detailLat=${lat}&detailLon=${lon}&metricTemp=${metricTemp}&metricRain=${metricRain}&metricWind=${metricWind}&product=${product}&lang=${lang}`;
+    return `${EMBED_URL}?${params.toString()}`;
   }
 
   private _renderForecast() {
-    return this._renderIframeWithWrapper(this._forecastUrl, 185, 'Windy Forecast', false, false);
+    const title = localize(this.hass, 'component.windy-card.card.forecast_frame') ?? 'Windy Forecast';
+    return this._renderIframeWithWrapper(this._forecastUrl, 185, title, false, false, false, false);
   }
 
   static styles = unsafeCSS(cardStyles);
@@ -762,11 +832,21 @@ declare global {
   }
 }
 
+// A duplicate Lovelace resource entry loads this bundle twice. An unguarded define throws and
+// takes the second copy down with it, so register only if nobody registered us before.
+if (!customElements.get(ELEMENT_NAME)) {
+  customElements.define(ELEMENT_NAME, WindyCard);
+}
+
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: ELEMENT_NAME,
-  name: 'Windy Card',
-  description: localize(undefined, 'component.windy-card.common.description'),
-  documentationURL: 'https://github.com/timmaurice/lovelace-windy-card',
-  preview: true,
-});
+// Same reason: a second evaluation would otherwise add a second picker entry for the same card,
+// so the card appears twice in "Add card".
+if (!window.customCards.some((card) => card.type === ELEMENT_NAME)) {
+  window.customCards.push({
+    type: ELEMENT_NAME,
+    name: 'Windy Card',
+    description: localize(undefined, 'component.windy-card.common.description'),
+    documentationURL: 'https://github.com/timmaurice/lovelace-windy-card',
+    preview: true,
+  });
+}

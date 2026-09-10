@@ -1,11 +1,12 @@
 import { LitElement, html, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCardEditor, WindyCardConfig, HaFormSchema } from './types.js';
 import { fireEvent } from './utils.js';
 import { localize } from './localize.js';
 import editorStyles from './styles/editor.styles.scss';
+import { EDITOR_ELEMENT_NAME } from './constants.js';
+import { isImageryOverlay, supportsElevation, supportsProduct } from './overlays.js';
 
-@customElement('windy-card-editor')
 export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config!: WindyCardConfig;
@@ -20,9 +21,12 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   }
 
   private _getSchema() {
-    const overlay = (this._config.overlay || 'wind').toLowerCase();
-    const isRadarOrSatellite = ['radar', 'satellite'].includes(overlay);
-    const supportsElevation = ['wind', 'temp', 'clouds', 'rh', 'dewpoint', 'cat', 'icing', 'cap'].includes(overlay);
+    // Through the shared tables, so a legacy id in an old config is judged by the same
+    // rules as the canonical one the dropdown writes.
+    const overlay = this._config.overlay || 'wind';
+    const isRadarOrSatellite = isImageryOverlay(overlay);
+    const hasElevation = supportsElevation(overlay);
+    const hasProduct = supportsProduct(overlay);
     const isForecastOnly = this._config.default_mode === 'forecast_only';
     const isMapOnly = this._config.default_mode === 'map_only';
 
@@ -228,6 +232,10 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
         expanded: true,
         title: localize(this.hass, 'component.windy-card.editor.sections.view'),
         schema: [
+          // The card has always rendered `title` as the ha-card header and the label has
+          // always been translated - only the field was missing, so it could be set in
+          // YAML but not in the editor that is meant to replace YAML.
+          { name: 'title', selector: { text: {} } },
           {
             name: '',
             type: 'grid',
@@ -368,7 +376,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                   },
                 },
 
-                ...(supportsElevation
+                ...(hasElevation
                   ? [
                       {
                         name: 'level',
@@ -438,7 +446,7 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
                       } as HaFormSchema,
                     ]
                   : []),
-                ...(!isRadarOrSatellite
+                ...(hasProduct
                   ? [
                       {
                         name: 'product',
@@ -617,8 +625,37 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   };
 
   private _valueChanged(ev: CustomEvent): void {
-    fireEvent(this as unknown as HTMLElement, 'config-changed', { config: ev.detail.value });
+    fireEvent(this as unknown as HTMLElement, 'config-changed', { config: this._prune(ev.detail.value) });
+  }
+
+  /**
+   * ha-form hands back a value for every field it drew, cleared ones included: an emptied
+   * text field comes back as '', a cleared multi-select as [], a cleared number as
+   * undefined. Written straight through they settle in the dashboard as keys that say
+   * nothing - and an empty value is not the same as an unset one to read back later. The
+   * card's own defaults apply to whatever is absent, so absent is what they should be.
+   */
+  private _prune(config: WindyCardConfig): WindyCardConfig {
+    const pruned = Object.fromEntries(
+      Object.entries(config).filter(
+        ([, value]) =>
+          value !== undefined && value !== null && value !== '' && !(Array.isArray(value) && value.length === 0),
+      ),
+    );
+    return pruned as WindyCardConfig;
   }
 
   static styles = unsafeCSS(editorStyles);
+}
+
+// Same reason as the card itself: a duplicate resource evaluates this module twice and an
+// unguarded define would throw.
+if (!customElements.get(EDITOR_ELEMENT_NAME)) {
+  customElements.define(EDITOR_ELEMENT_NAME, WindyCardEditor);
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'windy-card-editor': WindyCardEditor;
+  }
 }

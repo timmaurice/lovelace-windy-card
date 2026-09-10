@@ -164,3 +164,32 @@ iframe {
     }
   }
 }
+
+/*
+ * A configured entity that cannot be used is reported here rather than by quietly
+ * falling back, so the card never looks merely wrong.
+ */
+.entity-problems {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.entity-problem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--warning-color, #ffa600);
+
+  ha-icon {
+    --mdc-icon-size: 18px;
+    flex: 0 0 auto;
+  }
+
+  span {
+    color: var(--secondary-text-color);
+    overflow-wrap: anywhere;
+  }
+}

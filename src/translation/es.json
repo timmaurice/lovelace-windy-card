@@ -9,7 +9,17 @@
     "enable_interaction": "Habilitar interacción",
     "disable_interaction": "Deshabilitar interacción",
     "fullscreen": "Pantalla completa",
-    "exit_fullscreen": "Salir de pantalla completa"
+    "exit_fullscreen": "Salir de pantalla completa",
+    "map_frame": "Mapa de Windy",
+    "forecast_frame": "Previsión local de Windy",
+    "entity_problem": {
+      "not_found": "{entity} no existe.",
+      "unavailable": "{entity} no está disponible.",
+      "unknown": "{entity} aún no tiene estado.",
+      "wrong_domain": "{entity} no es un tipo de entidad compatible.",
+      "unknown_value": "{entity} indica «{value}», que no es una capa de Windy.",
+      "no_coordinates": "{entity} no tiene atributos de latitud y longitud."
+    }
   },
   "editor": {
     "sections": {

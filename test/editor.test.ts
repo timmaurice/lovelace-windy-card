@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import '../src/editor.js';
 import { WindyCardEditor } from '../src/editor.js';
 import { WindyCardConfig, HomeAssistant, HaFormSchema } from '../src/types.js';
@@ -27,6 +27,24 @@ describe('WindyCardEditor', () => {
       expect(flatSchema.some((s) => s.name === 'level')).toBe(true);
     });
 
+    // The dropdown writes Windy's canonical ids, so those are the ones the schema has
+    // to recognise - it used to test for the retired aliases and hid the selector for
+    // exactly the two layers that reach it under a new name.
+    it.each(['turbulence', 'cape'])('returns elevation level selector for the %s overlay', (overlay) => {
+      const editor = makeEditor({ overlay });
+      const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+      const flatSchema = flattenSchema(schema);
+      expect(flatSchema.some((s) => s.name === 'level')).toBe(true);
+    });
+
+    // A config written before the rename still says cat/cap, and it still means the same layer.
+    it.each(['cat', 'cap'])('returns elevation level selector for the legacy %s overlay', (overlay) => {
+      const editor = makeEditor({ overlay });
+      const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+      const flatSchema = flattenSchema(schema);
+      expect(flatSchema.some((s) => s.name === 'level')).toBe(true);
+    });
+
     it('hides elevation level selector for radar overlay', () => {
       const editor = makeEditor({ overlay: 'radar' });
       const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
@@ -40,6 +58,36 @@ describe('WindyCardEditor', () => {
       const flatSchema = flattenSchema(schema);
       expect(flatSchema.some((s) => s.name === 'product')).toBe(false);
     });
+
+    // These layers come from one fixed source. The card drops `product` from the URL for
+    // them, so offering the dropdown only promises a choice that has no effect.
+    it.each(['fwi', 'sst', 'pm2p5', 'capAlerts', 'currentsTide'])(
+      'hides the product selector for the fixed-product %s overlay',
+      (overlay) => {
+        const editor = makeEditor({ overlay });
+        const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+        const flatSchema = flattenSchema(schema);
+        expect(flatSchema.some((s) => s.name === 'product')).toBe(false);
+      },
+    );
+
+    it('offers the product selector for a model-driven overlay', () => {
+      const editor = makeEditor({ overlay: 'wind' });
+      const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+      const flatSchema = flattenSchema(schema);
+      expect(flatSchema.some((s) => s.name === 'product')).toBe(true);
+    });
+
+    // The card renders it and the translations name it; only the editor never offered it.
+    it.each(['map', 'forecast', 'map_only', 'forecast_only'] as const)(
+      'offers the card title in %s mode',
+      (default_mode) => {
+        const editor = makeEditor({ default_mode });
+        const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
+        const flatSchema = flattenSchema(schema);
+        expect(flatSchema.some((s) => s.name === 'title')).toBe(true);
+      },
+    );
 
     it('hides map options when in forecast_only mode', () => {
       const editor = makeEditor({ default_mode: 'forecast_only' });
@@ -101,6 +149,69 @@ describe('WindyCardEditor', () => {
       const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
       const flatSchema = flattenSchema(schema);
       expect(flatSchema.some((s) => s.name === 'allow_geolocation')).toBe(false);
+    });
+  });
+
+  describe('_valueChanged()', () => {
+    function saved(editor: WindyCardEditor, value: Record<string, unknown>): WindyCardConfig {
+      let config: WindyCardConfig | undefined;
+      editor.addEventListener('config-changed', (event) => {
+        config = (event as CustomEvent).detail.config;
+      });
+      (editor as unknown as { _valueChanged: (ev: CustomEvent) => void })._valueChanged(
+        new CustomEvent('value-changed', { detail: { value } }),
+      );
+      if (!config) throw new Error('the editor did not report a configuration');
+      return config;
+    }
+
+    // The card defaults whatever is absent, so a cleared field belongs out of the config
+    // rather than in it as an empty value nobody chose.
+    it('drops cleared fields instead of writing them into the config', () => {
+      const config = saved(makeEditor(), {
+        type: 'custom:windy-card',
+        title: '',
+        height: undefined,
+        aspect_ratio: '',
+        overlay_loop: [],
+        location: null,
+        zoom: 7,
+      });
+
+      expect(config).toEqual({ type: 'custom:windy-card', zoom: 7 });
+    });
+
+    it('keeps everything the user did set, false and zero included', () => {
+      const config = saved(makeEditor(), {
+        type: 'custom:windy-card',
+        title: 'Sailing',
+        no_padding: false,
+        update_interval: 0,
+        overlay_loop: ['wind', 'rain'],
+      });
+
+      expect(config).toEqual({
+        type: 'custom:windy-card',
+        title: 'Sailing',
+        no_padding: false,
+        update_interval: 0,
+        overlay_loop: ['wind', 'rain'],
+      });
+    });
+  });
+
+  describe('Duplicate resource registration', () => {
+    it('should not throw when the editor module is evaluated a second time', async () => {
+      vi.resetModules();
+      await expect(import('../src/editor.js')).resolves.toBeDefined();
+    });
+
+    it('should keep the originally registered editor element after a second evaluation', async () => {
+      const first = window.customElements.get('windy-card-editor');
+      vi.resetModules();
+      await import('../src/editor.js');
+
+      expect(window.customElements.get('windy-card-editor')).toBe(first);
     });
   });
 });

@@ -2,5 +2,6 @@
   "name": "Windy Card",
   "content_in_root": false,
   "render_readme": true,
-  "filename": "windy-card.js"
+  "filename": "windy-card.js",
+  "homeassistant": "2026.6.0"
 }

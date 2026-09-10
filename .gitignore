@@ -14,3 +14,7 @@ ha-config/*
 
 # Build output (built by CI and attached to the GitHub release)
 dist/
+
+# Playwright
+test-results/
+playwright-report/

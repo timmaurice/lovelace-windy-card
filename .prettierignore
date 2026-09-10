@@ -8,3 +8,7 @@ node_modules
 package-lock.json
 
 scripts/windy-embed-snapshot.js
+
+# Playwright's captured session (generated, gitignored)
+test/e2e/.auth.json
+test/e2e/.storage-state.json

@@ -9,7 +9,15 @@
     "enable_interaction": "启用交互",
     "disable_interaction": "禁用交互",
     "fullscreen": "全屏",
-    "exit_fullscreen": "退出全屏"
+    "exit_fullscreen": "退出全屏",
+    "entity_problem": {
+      "not_found": "{entity} 不存在。",
+      "unavailable": "{entity} 不可用。",
+      "unknown": "{entity} 尚无状态。",
+      "wrong_domain": "{entity} 不是受支持的实体类型。",
+      "unknown_value": "{entity} 报告“{value}”，这不是 Windy 图层。",
+      "no_coordinates": "{entity} 没有经纬度属性。"
+    }
   },
   "editor": {
     "sections": {

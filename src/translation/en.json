@@ -9,7 +9,15 @@
     "enable_interaction": "Enable interaction",
     "disable_interaction": "Disable interaction",
     "fullscreen": "Full screen",
-    "exit_fullscreen": "Exit full screen"
+    "exit_fullscreen": "Exit full screen",
+    "entity_problem": {
+      "not_found": "{entity} does not exist.",
+      "unavailable": "{entity} is unavailable.",
+      "unknown": "{entity} has no state yet.",
+      "wrong_domain": "{entity} is not a supported entity type.",
+      "unknown_value": "{entity} reports \"{value}\", which is not a Windy layer.",
+      "no_coordinates": "{entity} has no latitude and longitude attributes."
+    }
   },
   "editor": {
     "sections": {

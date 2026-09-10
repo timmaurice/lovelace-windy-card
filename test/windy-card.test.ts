@@ -47,6 +47,13 @@ function getForecastIframeSrc(card: WindyCard): string {
   return url as string;
 }
 
+/** Renders the whole card into a detached container, so attributes and rows can be read. */
+function renderCard(card: WindyCard): HTMLElement {
+  const container = document.createElement('div');
+  render((card as unknown as { render: () => unknown }).render(), container);
+  return container;
+}
+
 describe('WindyCard', () => {
   describe('getStubConfig()', () => {
     it('returns a valid stub config', () => {
@@ -444,6 +451,114 @@ describe('WindyCard', () => {
       });
 
       expect(hasResetButtonValue).toBe(false);
+    });
+  });
+
+  describe('overlay_entity resolution', () => {
+    function makeCardWith(states: Record<string, unknown>, config: Partial<WindyCardConfig>): WindyCard {
+      const card = new WindyCard();
+      card.hass = { ...mockHass, states } as unknown as typeof card.hass;
+      card.setConfig({ type: 'custom:windy-card', ...config });
+      return card;
+    }
+
+    // `unavailable`/`unknown` are Home Assistant saying "no value". Sent on as a layer
+    // name they leave the Windy map blank, which looks like a broken card.
+    it.each(['unavailable', 'unknown'])('keeps the configured layer while the entity state is %s', (state) => {
+      const card = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state, attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      const src = getIframeSrc(card);
+
+      expect(src).toContain('overlay=rain');
+      expect(src).not.toContain(`overlay=${state}`);
+    });
+
+    it('keeps the configured layer while the entity has no state at all', () => {
+      const card = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: '', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+    });
+
+    it('keeps the configured layer when the state is not a Windy layer at all', () => {
+      const card = makeCardWith(
+        { 'binary_sensor.window': { entity_id: 'binary_sensor.window', state: 'on', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'binary_sensor.window' },
+      );
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+    });
+
+    it('keeps the configured layer when the entity does not exist', () => {
+      const card = makeCardWith({}, { overlay: 'rain', overlay_entity: 'sensor.gone' });
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+    });
+
+    it('follows a usable state, aliases included', () => {
+      const clouds = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: 'clouds', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      expect(getIframeSrc(clouds)).toContain('overlay=clouds');
+
+      const legacy = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: 'cat', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      expect(getIframeSrc(legacy)).toContain('overlay=turbulence');
+    });
+
+    it('reports the unusable entity instead of failing silently', () => {
+      const card = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: 'unavailable', attributes: {} } },
+        { overlay: 'rain', overlay_entity: 'sensor.layer' },
+      );
+      const problems = renderCard(card).querySelectorAll('.entity-problem');
+
+      expect(problems).toHaveLength(1);
+      expect(problems[0].textContent).toContain('sensor.layer');
+    });
+
+    it('names the useless value when the state is not a layer', () => {
+      const card = makeCardWith(
+        { 'binary_sensor.window': { entity_id: 'binary_sensor.window', state: 'on', attributes: {} } },
+        { overlay_entity: 'binary_sensor.window' },
+      );
+      const problem = renderCard(card).querySelector('.entity-problem');
+
+      expect(problem?.textContent).toContain('binary_sensor.window');
+      expect(problem?.textContent).toContain('on');
+    });
+
+    it('stays quiet while the overlay loop overrides the entity anyway', () => {
+      const card = makeCardWith(
+        { 'sensor.layer': { entity_id: 'sensor.layer', state: 'unavailable', attributes: {} } },
+        { overlay_entity: 'sensor.layer', overlay_loop: ['wind', 'rain'] },
+      );
+      expect(renderCard(card).querySelectorAll('.entity-problem')).toHaveLength(0);
+    });
+
+    it('reports a location entity that carries no coordinates', () => {
+      const card = makeCardWith(
+        { 'zone.nowhere': { entity_id: 'zone.nowhere', state: 'zoning', attributes: {} } },
+        { location: 'zone.nowhere' },
+      );
+      const problem = renderCard(card).querySelector('.entity-problem');
+
+      expect(problem?.textContent).toContain('zone.nowhere');
+    });
+
+    it('paints no problem row when every configured entity resolves', () => {
+      const card = makeCardWith(
+        {
+          'sensor.layer': { entity_id: 'sensor.layer', state: 'clouds', attributes: {} },
+          'zone.spot': { entity_id: 'zone.spot', state: 'zoning', attributes: { latitude: 1, longitude: 2 } },
+        },
+        { overlay_entity: 'sensor.layer', location: 'zone.spot' },
+      );
+      expect(renderCard(card).querySelectorAll('.entity-problem')).toHaveLength(0);
     });
   });
 

@@ -9,7 +9,15 @@
     "enable_interaction": "Interaktion aktivieren",
     "disable_interaction": "Interaktion deaktivieren",
     "fullscreen": "Vollbild",
-    "exit_fullscreen": "Vollbild beenden"
+    "exit_fullscreen": "Vollbild beenden",
+    "entity_problem": {
+      "not_found": "{entity} existiert nicht.",
+      "unavailable": "{entity} ist nicht verfügbar.",
+      "unknown": "{entity} hat noch keinen Zustand.",
+      "wrong_domain": "{entity} ist kein unterstützter Entitätstyp.",
+      "unknown_value": "{entity} meldet „{value}“ – das ist keine Windy-Ebene.",
+      "no_coordinates": "{entity} hat keine Attribute für Breiten- und Längengrad."
+    }
   },
   "editor": {
     "sections": {

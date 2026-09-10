@@ -4,8 +4,10 @@ import { HomeAssistant, LovelaceCard, LovelaceCardEditor, WindyCardConfig } from
 import { localize } from './localize.js';
 import cardStyles from './styles/card.styles.scss';
 import { ELEMENT_NAME, EDITOR_ELEMENT_NAME } from './constants.js';
+import { resolveEntity } from './entity.js';
 import {
   hasFixedProduct,
+  isKnownOverlay,
   isAccumulationOverlay,
   isImageryOverlay,
   normalizeOverlay,
@@ -277,10 +279,12 @@ export class WindyCard extends LitElement implements LovelaceCard {
       rawOverlay = (loop[idx] ?? 'wind').toLowerCase();
     } else {
       rawOverlay = (this._config.overlay ?? 'wind').toLowerCase();
-      if (this._config.overlay_entity && this.hass?.states) {
-        const entityState = this.hass.states[this._config.overlay_entity];
-        if (entityState?.state) {
-          rawOverlay = entityState.state.toLowerCase();
+      // Only a usable state that actually names a layer replaces the configured one -
+      // anything else keeps the fallback and is reported by _entityProblems() instead.
+      if (this._config.overlay_entity) {
+        const resolved = resolveEntity(this.hass, this._config.overlay_entity);
+        if (resolved.ok && isKnownOverlay(resolved.state)) {
+          rawOverlay = resolved.state.toLowerCase();
         }
       }
     }
@@ -293,14 +297,15 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const defaultLat = this.hass?.config?.latitude ?? 51.9503;
     const defaultLon = this.hass?.config?.longitude ?? 7.9855;
 
-    if (this._config.location && this.hass?.states) {
-      const zoneState = this.hass.states[this._config.location];
-      if (zoneState) {
-        const lat = zoneState.attributes['latitude'] as number | undefined;
-        const lon = zoneState.attributes['longitude'] as number | undefined;
-        if (lat !== undefined && lon !== undefined) {
-          return { lat, lon };
-        }
+    // Deliberately not resolved through resolveEntity(): the map needs coordinates, not a
+    // state, and a device tracker that has gone unavailable still carries its last known
+    // position. Refusing that would move the map instead of leaving it where it was.
+    const locationEntity = this._config.location ? this.hass?.states?.[this._config.location] : undefined;
+    if (locationEntity) {
+      const lat = locationEntity.attributes['latitude'] as number | undefined;
+      const lon = locationEntity.attributes['longitude'] as number | undefined;
+      if (lat !== undefined && lon !== undefined) {
+        return { lat, lon };
       }
     }
 
@@ -323,6 +328,63 @@ export class WindyCard extends LitElement implements LovelaceCard {
     return `${((h / w) * 100).toFixed(4)}%`;
   }
 
+  /**
+   * The entity options that cannot be used right now, with the reason.
+   *
+   * Recomputed on every render from `hass` and the config rather than remembered, so it
+   * cannot go stale and needs no reactive state of its own.
+   */
+  private _entityProblems(): { entityId: string; reason: string; value?: string }[] {
+    const problems: { entityId: string; reason: string; value?: string }[] = [];
+    const loop = this._config.overlay_loop;
+    const loopWins = Array.isArray(loop) && loop.length > 0;
+
+    // The loop overrides the entity, so a broken entity is not worth a row while it runs.
+    if (this._config.overlay_entity && !loopWins) {
+      const resolved = resolveEntity(this.hass, this._config.overlay_entity);
+      if (!resolved.ok) {
+        problems.push({ entityId: resolved.entityId, reason: resolved.reason });
+      } else if (!isKnownOverlay(resolved.state)) {
+        problems.push({ entityId: this._config.overlay_entity, reason: 'unknown_value', value: resolved.state });
+      }
+    }
+
+    if (this._config.location) {
+      const entity = this.hass?.states?.[this._config.location];
+      if (!entity) {
+        problems.push({ entityId: this._config.location, reason: 'not_found' });
+      } else if (entity.attributes['latitude'] === undefined || entity.attributes['longitude'] === undefined) {
+        // Any domain may carry coordinates, so this is about the attributes, not the domain.
+        problems.push({ entityId: this._config.location, reason: 'no_coordinates' });
+      }
+    }
+
+    return problems;
+  }
+
+  private _renderEntityProblems() {
+    const problems = this._entityProblems();
+    if (!problems.length) return nothing;
+
+    return html`
+      <div class="entity-problems">
+        ${problems.map(
+          (problem) => html`
+            <div class="entity-problem" role="alert">
+              <ha-icon icon="mdi:alert-outline"></ha-icon>
+              <span
+                >${localize(this.hass, `component.windy-card.card.entity_problem.${problem.reason}`, {
+                  entity: problem.entityId,
+                  value: problem.value ?? '',
+                })}</span
+              >
+            </div>
+          `,
+        )}
+      </div>
+    `;
+  }
+
   protected render() {
     if (!this._config || !this.hass) {
       return html``;
@@ -335,6 +397,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
       return html`
         <ha-card .header=${this._config.title} class=${noPadding ? 'no-padding' : ''}>
           <div class="card-content">
+            ${this._renderEntityProblems()}
             <div class="content">${this._renderMap()}</div>
           </div>
         </ha-card>
@@ -346,6 +409,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
       return html`
         <ha-card .header=${this._config.title} class=${noPadding ? 'no-padding' : ''}>
           <div class="card-content">
+            ${this._renderEntityProblems()}
             <div class="content">${this._renderForecast()}</div>
           </div>
         </ha-card>
@@ -356,6 +420,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
     return html`
       <ha-card .header=${this._config.title} class=${noPadding ? 'no-padding' : ''}>
         <div class="card-content">
+          ${this._renderEntityProblems()}
           <div class="modes" role="tablist" aria-orientation="horizontal" @keydown=${this._handleTabKeyDown}>
             <button
               role="tab"

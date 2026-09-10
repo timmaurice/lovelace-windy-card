@@ -9,7 +9,15 @@
     "enable_interaction": "Activer l'interaction",
     "disable_interaction": "Désactiver l'interaction",
     "fullscreen": "Plein écran",
-    "exit_fullscreen": "Quitter le plein écran"
+    "exit_fullscreen": "Quitter le plein écran",
+    "entity_problem": {
+      "not_found": "{entity} n'existe pas.",
+      "unavailable": "{entity} est indisponible.",
+      "unknown": "{entity} n'a pas encore d'état.",
+      "wrong_domain": "{entity} n'est pas un type d'entité pris en charge.",
+      "unknown_value": "{entity} indique « {value} », ce qui n'est pas une couche Windy.",
+      "no_coordinates": "{entity} n'a pas d'attributs de latitude et de longitude."
+    }
   },
   "editor": {
     "sections": {

@@ -9,7 +9,15 @@
     "enable_interaction": "Povolit ovládání",
     "disable_interaction": "Zakázat ovládání",
     "fullscreen": "Celá obrazovka",
-    "exit_fullscreen": "Ukončit celou obrazovku"
+    "exit_fullscreen": "Ukončit celou obrazovku",
+    "entity_problem": {
+      "not_found": "{entity} neexistuje.",
+      "unavailable": "{entity} není dostupná.",
+      "unknown": "{entity} ještě nemá stav.",
+      "wrong_domain": "{entity} není podporovaný typ entity.",
+      "unknown_value": "{entity} hlásí „{value}“, což není vrstva Windy.",
+      "no_coordinates": "{entity} nemá atributy zeměpisné šířky a délky."
+    }
   },
   "editor": {
     "sections": {

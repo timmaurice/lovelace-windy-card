@@ -124,3 +124,40 @@ export function isAccumulationOverlay(overlay: string): boolean {
 export function supportsProduct(overlay: string): boolean {
   return !isImageryOverlay(overlay) && !hasFixedProduct(overlay);
 }
+
+/**
+ * Every overlay id the card knows, canonical spelling.
+ *
+ * Only the entity-driven path checks against this: a state like `unavailable`, `on` or a
+ * room name is not a layer, and sending it to Windy leaves the map blank with no hint why.
+ * An explicit `overlay:` in YAML is deliberately not checked, so a layer Windy ships before
+ * this list catches up stays usable.
+ */
+const KNOWN_OVERLAYS = [
+  ...RADAR_OR_SATELLITE,
+  ...SUPPORTS_ELEVATION,
+  ...HAS_FIXED_PRODUCT,
+  ...ACCUMULATION,
+  'rain',
+  'snowcover',
+  'ptype',
+  'thunder',
+  'deg0',
+  'wetbulbtemp',
+  'solarpower',
+  'uvindex',
+  'hclouds',
+  'mclouds',
+  'lclouds',
+  'fog',
+  'cloudtop',
+  'cbase',
+  'visibility',
+  'ccl',
+  'gust',
+  'pressure',
+];
+
+export function isKnownOverlay(overlay: string | undefined): boolean {
+  return KNOWN_OVERLAYS.includes(normalizeOverlay(overlay));
+}

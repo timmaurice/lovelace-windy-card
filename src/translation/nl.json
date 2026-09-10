@@ -9,7 +9,15 @@
     "enable_interaction": "Interactie inschakelen",
     "disable_interaction": "Interactie uitschakelen",
     "fullscreen": "Volledig scherm",
-    "exit_fullscreen": "Volledig scherm verlaten"
+    "exit_fullscreen": "Volledig scherm verlaten",
+    "entity_problem": {
+      "not_found": "{entity} bestaat niet.",
+      "unavailable": "{entity} is niet beschikbaar.",
+      "unknown": "{entity} heeft nog geen status.",
+      "wrong_domain": "{entity} is geen ondersteund entiteitstype.",
+      "unknown_value": "{entity} meldt “{value}”, wat geen Windy-laag is.",
+      "no_coordinates": "{entity} heeft geen breedte- en lengtegraad-attributen."
+    }
   },
   "editor": {
     "sections": {

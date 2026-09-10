@@ -62,6 +62,34 @@ test.describe('Single-panel modes', () => {
     expect(consoleErrors).toEqual([]);
   });
 
+  test('says so when the overlay entity has no usable state, instead of sending it to Windy', async ({
+    page,
+    consoleErrors,
+  }) => {
+    // An integration restarting is enough to make this happen, and until the card
+    // resolved the entity properly `overlay=unavailable` went straight into the embed
+    // URL - a blank map with nothing anywhere saying why.
+    await setState(OVERLAY, 'unavailable', { friendly_name: 'E2E Windy Overlay' });
+    await page.goto(`/${urlPath}/0`);
+
+    const card = page.locator('windy-card');
+    await expect(card.locator('ha-card')).toBeVisible({ timeout: 60_000 });
+
+    const problem = card.locator('.entity-problem');
+    await expect(problem).toHaveCount(1);
+    await expect(problem).toContainText(OVERLAY);
+
+    // The URL falls back to the default layer rather than carrying the state.
+    await expect.poll(async () => (await embed(embedFrames(card))).params.overlay, { timeout: 30_000 }).toBe('wind');
+
+    // And it recovers on its own once the entity reports a layer again.
+    await setState(OVERLAY, 'clouds', { friendly_name: 'E2E Windy Overlay' });
+    await expect.poll(async () => (await embed(embedFrames(card))).params.overlay, { timeout: 30_000 }).toBe('clouds');
+    await expect(card.locator('.entity-problem')).toHaveCount(0);
+
+    expect(consoleErrors).toEqual([]);
+  });
+
   test('forecast_only paints the forecast panel with neither tabs nor an interaction lock', async ({
     page,
     consoleErrors,

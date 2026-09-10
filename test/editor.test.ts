@@ -152,6 +152,54 @@ describe('WindyCardEditor', () => {
     });
   });
 
+  describe('_valueChanged()', () => {
+    function saved(editor: WindyCardEditor, value: Record<string, unknown>): WindyCardConfig {
+      let config: WindyCardConfig | undefined;
+      editor.addEventListener('config-changed', (event) => {
+        config = (event as CustomEvent).detail.config;
+      });
+      (editor as unknown as { _valueChanged: (ev: CustomEvent) => void })._valueChanged(
+        new CustomEvent('value-changed', { detail: { value } }),
+      );
+      if (!config) throw new Error('the editor did not report a configuration');
+      return config;
+    }
+
+    // The card defaults whatever is absent, so a cleared field belongs out of the config
+    // rather than in it as an empty value nobody chose.
+    it('drops cleared fields instead of writing them into the config', () => {
+      const config = saved(makeEditor(), {
+        type: 'custom:windy-card',
+        title: '',
+        height: undefined,
+        aspect_ratio: '',
+        overlay_loop: [],
+        location: null,
+        zoom: 7,
+      });
+
+      expect(config).toEqual({ type: 'custom:windy-card', zoom: 7 });
+    });
+
+    it('keeps everything the user did set, false and zero included', () => {
+      const config = saved(makeEditor(), {
+        type: 'custom:windy-card',
+        title: 'Sailing',
+        no_padding: false,
+        update_interval: 0,
+        overlay_loop: ['wind', 'rain'],
+      });
+
+      expect(config).toEqual({
+        type: 'custom:windy-card',
+        title: 'Sailing',
+        no_padding: false,
+        update_interval: 0,
+        overlay_loop: ['wind', 'rain'],
+      });
+    });
+  });
+
   describe('Duplicate resource registration', () => {
     it('should not throw when the editor module is evaluated a second time', async () => {
       vi.resetModules();

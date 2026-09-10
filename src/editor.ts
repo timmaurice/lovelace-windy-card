@@ -625,7 +625,24 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   };
 
   private _valueChanged(ev: CustomEvent): void {
-    fireEvent(this as unknown as HTMLElement, 'config-changed', { config: ev.detail.value });
+    fireEvent(this as unknown as HTMLElement, 'config-changed', { config: this._prune(ev.detail.value) });
+  }
+
+  /**
+   * ha-form hands back a value for every field it drew, cleared ones included: an emptied
+   * text field comes back as '', a cleared multi-select as [], a cleared number as
+   * undefined. Written straight through they settle in the dashboard as keys that say
+   * nothing - and an empty value is not the same as an unset one to read back later. The
+   * card's own defaults apply to whatever is absent, so absent is what they should be.
+   */
+  private _prune(config: WindyCardConfig): WindyCardConfig {
+    const pruned = Object.fromEntries(
+      Object.entries(config).filter(
+        ([, value]) =>
+          value !== undefined && value !== null && value !== '' && !(Array.isArray(value) && value.length === 0),
+      ),
+    );
+    return pruned as WindyCardConfig;
   }
 
   static styles = unsafeCSS(editorStyles);

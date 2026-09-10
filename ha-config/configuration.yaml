@@ -14,8 +14,8 @@ lovelace:
     lovelace:
       mode: yaml
       filename: ui-lovelace.yaml
-      title: Overview
-      icon: mdi:view-dashboard
+      title: Windy
+      icon: mdi:weather-windy
       show_in_sidebar: true
 
   resources:

@@ -359,10 +359,41 @@ describe('WindyCard', () => {
 
     it('uses configured metric values', () => {
       const card = makeCard({ overlay: 'wind', metric_temp: '°C', metric_rain: 'mm', metric_wind: 'km/h' });
+      // Read back through URL, not by substring: the degree sign and the slash are
+      // percent-encoded in the query, and what matters is the value Windy decodes.
+      const params = new URL(getIframeSrc(card)).searchParams;
+      expect(params.get('metricTemp')).toBe('°C');
+      expect(params.get('metricRain')).toBe('mm');
+      expect(params.get('metricWind')).toBe('km/h');
+    });
+  });
+
+  describe('URL generation — encoding', () => {
+    it('encodes values that are not URL-safe', () => {
+      const card = makeCard({ overlay: 'wind', metric_temp: '°C', metric_wind: 'm/s' });
       const src = getIframeSrc(card);
-      expect(src).toContain('metricTemp=°C');
-      expect(src).toContain('metricRain=mm');
-      expect(src).toContain('metricWind=km/h');
+
+      // Raw in the query string these end the parameter early or change its meaning.
+      expect(src).not.toContain('°C');
+      expect(src).not.toContain('m/s');
+      expect(new URL(src).searchParams.get('metricWind')).toBe('m/s');
+    });
+
+    it('keeps a value with a separator in it from becoming another parameter', () => {
+      const card = makeCard({ overlay: 'wind&pressure=true&zoom=11' });
+      const params = new URL(getIframeSrc(card)).searchParams;
+
+      expect(params.get('overlay')).toBe('wind&pressure=true&zoom=11');
+      expect(params.get('pressure')).toBeNull();
+      expect(params.get('zoom')).toBe('5');
+    });
+
+    it('encodes the forecast parameters too', () => {
+      const card = makeCard({ metric_wind: 'm/s' });
+      const src = getForecastIframeSrc(card);
+
+      expect(src).not.toContain('m/s');
+      expect(new URL(src).searchParams.get('metricWind')).toBe('m/s');
     });
   });
 

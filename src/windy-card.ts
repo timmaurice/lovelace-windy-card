@@ -16,6 +16,8 @@ import {
 
 type ViewMode = 'map' | 'forecast';
 
+const EMBED_URL = 'https://embed.windy.com/embed.html';
+
 export class WindyCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config!: WindyCardConfig;
@@ -701,18 +703,35 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const metricRain = this._config.metric_rain ?? 'default';
     const metricWind = this._config.metric_wind ?? 'default';
 
-    const marker = this._config.show_marker ? `&detailLat=${lat}&detailLon=${lon}&marker=true` : '';
-    const detail = this._config.show_spot ? `&detailLat=${lat}&detailLon=${lon}&detail=true` : '';
+    const params = new URLSearchParams();
+    // Built through URLSearchParams rather than string concatenation: several of these
+    // values are user input (units like "m/s", a layer name that arrives from an entity
+    // state), and unencoded they either break the parameter or smuggle another one in.
+    params.set('type', 'map');
+    params.set('location', 'coordinates');
+    params.set('metricRain', metricRain);
+    params.set('metricTemp', metricTemp);
+    params.set('metricWind', metricWind);
+    params.set('zoom', String(zoom));
+    params.set('overlay', overlay);
+    if (product) params.set('product', product);
+    params.set('level', level);
+    params.set('lat', String(lat));
+    params.set('lon', String(lon));
 
-    const pressure = this._config.show_pressure && !isRadarOrSatellite ? '&pressure=true' : '';
-    const message = this._config.hide_message ? '&message=true' : '';
-    const autoplay = this._config.autoplay ? '&play=true' : '';
+    // Both the marker and the spot popup are placed at the same detail coordinates.
+    if (this._config.show_marker || this._config.show_spot) {
+      params.set('detailLat', String(lat));
+      params.set('detailLon', String(lon));
+    }
+    if (this._config.show_marker) params.set('marker', 'true');
+    if (this._config.show_spot) params.set('detail', 'true');
+    if (this._config.show_pressure && !isRadarOrSatellite) params.set('pressure', 'true');
+    if (this._config.hide_message) params.set('message', 'true');
+    if (this._config.autoplay) params.set('play', 'true');
+    params.set('lang', this.hass?.language || 'en');
 
-    const productParam = product ? `&product=${product}` : '';
-
-    const lang = this.hass?.language || 'en';
-
-    return `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=${metricRain}&metricTemp=${metricTemp}&metricWind=${metricWind}&zoom=${zoom}&overlay=${overlay}${productParam}&level=${level}&lat=${lat}&lon=${lon}${marker}${detail}${pressure}${message}${autoplay}&lang=${lang}`;
+    return `${EMBED_URL}?${params.toString()}`;
   }
 
   private _renderMap() {
@@ -721,13 +740,19 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
   private _computeForecastUrl(): string {
     const { lat, lon } = this._getLocation();
-    const metricTemp = this._config.metric_temp ?? 'default';
-    const metricRain = this._config.metric_rain ?? 'default';
-    const metricWind = this._config.metric_wind ?? 'default';
-    const product = this._config.forecast_product ?? this._config.product ?? 'ecmwf';
-    const lang = this.hass?.language || 'en';
+    const params = new URLSearchParams();
+    params.set('type', 'forecast');
+    params.set('location', 'coordinates');
+    params.set('detail', 'true');
+    params.set('detailLat', String(lat));
+    params.set('detailLon', String(lon));
+    params.set('metricTemp', this._config.metric_temp ?? 'default');
+    params.set('metricRain', this._config.metric_rain ?? 'default');
+    params.set('metricWind', this._config.metric_wind ?? 'default');
+    params.set('product', this._config.forecast_product ?? this._config.product ?? 'ecmwf');
+    params.set('lang', this.hass?.language || 'en');
 
-    return `https://embed.windy.com/embed.html?type=forecast&location=coordinates&detail=true&detailLat=${lat}&detailLon=${lon}&metricTemp=${metricTemp}&metricRain=${metricRain}&metricWind=${metricWind}&product=${product}&lang=${lang}`;
+    return `${EMBED_URL}?${params.toString()}`;
   }
 
   private _renderForecast() {

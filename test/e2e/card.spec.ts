@@ -37,6 +37,8 @@ test.beforeAll(async () => {
             location: SPOT,
             overlay: 'radar',
             zoom: 7,
+            // A unit whose value is not URL-safe, so the embed URL has to carry it encoded.
+            metric_wind: 'm/s',
             aspect_ratio: '16:9',
             // The lock is the default the README recommends for a dashboard, and
             // it keeps the frame from swallowing the clicks these tests make.
@@ -92,6 +94,9 @@ test.describe('The card on a real dashboard', () => {
     expect(Number(map.params.lon)).toBeCloseTo(SPOT_LON, 5);
     // radar is one of the overlays that carries no product of its own.
     expect(map.params.product).toBeUndefined();
+    // The slash has to survive as part of the value rather than as a path separator.
+    expect(map.params.metricWind).toBe('m/s');
+    expect(map.src).not.toContain('m/s');
 
     // 16:9 is painted as the wrapper's padding, which is what gives the frame
     // its box at all - a broken ratio collapses the card to zero height.

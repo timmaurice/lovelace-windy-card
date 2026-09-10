@@ -66,6 +66,36 @@ describe('WindyCard', () => {
     });
   });
 
+  describe('getGridOptions()', () => {
+    it('asks for the full width and a box the map fits in', () => {
+      const options = makeCard({ aspect_ratio: '16:9' }).getGridOptions();
+
+      expect(options.columns).toBe(12);
+      expect(options.min_columns).toBe(6);
+      expect(options.min_rows).toBe(2);
+      expect(options.rows).toBeGreaterThanOrEqual(8);
+    });
+
+    it('asks for less room for the forecast panel than for the map', () => {
+      const forecast = makeCard({ default_mode: 'forecast_only' }).getGridOptions();
+      const map = makeCard({ default_mode: 'map_only' }).getGridOptions();
+
+      expect(forecast.rows).toBeLessThan(map.rows);
+    });
+
+    it('follows an explicit height', () => {
+      const small = makeCard({ height: 200 }).getGridOptions();
+      const large = makeCard({ height: 800 }).getGridOptions();
+
+      expect(large.rows).toBeGreaterThan(small.rows);
+    });
+
+    // HA asks the element for its grid options, and it may do so before setConfig().
+    it('answers before a config is set', () => {
+      expect(() => new WindyCard().getGridOptions()).not.toThrow();
+    });
+  });
+
   describe('getCardSize()', () => {
     it('returns 10', () => {
       const card = makeCard();

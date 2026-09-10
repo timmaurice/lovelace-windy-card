@@ -55,6 +55,45 @@ test.afterAll(async () => {
   for (const entity of ENTITIES) await removeState(entity);
 });
 
+test.describe('The card on a sections dashboard', () => {
+  test('is given a box the map actually fits in', async ({ page, consoleErrors }) => {
+    // A sections view lays its cards out in grid rows, and it asks the element itself
+    // how many it wants. A card that does not answer leaves that to the dashboard's
+    // defaults, so the answer is worth asserting where a real dashboard asks for it.
+    const sectionsPath = await useDashboard('card-sections', {
+      views: [
+        {
+          type: 'sections',
+          title: 'Sections',
+          sections: [
+            {
+              type: 'grid',
+              cards: [{ type: 'custom:windy-card', title: 'E2E sections', location: SPOT, static_map: true }],
+            },
+          ],
+        },
+      ],
+    });
+
+    await page.goto(`/${sectionsPath}/0`);
+    const card = page.locator('windy-card');
+    await expect(card.locator('ha-card')).toBeVisible({ timeout: 60_000 });
+
+    // Through the locator, because the card lives inside the dashboard's shadow roots.
+    const options = await card.evaluate((element: HTMLElement & { getGridOptions?: () => unknown }) =>
+      element.getGridOptions ? element.getGridOptions() : null,
+    );
+    expect(options).toMatchObject({ columns: 12, min_columns: 6, min_rows: 2 });
+
+    // And the map is really there at a usable size, not squeezed into a stub of a card.
+    const box = (await card.locator('ha-card').boundingBox())!;
+    expect(box.height).toBeGreaterThan(300);
+    await expect(embedFrames(card)).toBeVisible();
+
+    expect(consoleErrors).toEqual([]);
+  });
+});
+
 test.describe('The card on a real dashboard', () => {
   test('paints the card, its tabs and a Windy embed built from the configuration', async ({ page, consoleErrors }) => {
     await page.goto(`/${urlPath}/0`);

@@ -232,6 +232,31 @@ export class WindyCard extends LitElement implements LovelaceCard {
     return 10;
   }
 
+  /**
+   * Sections dashboards lay cards out in grid rows instead of letting them size
+   * themselves, and a card that does not answer is given a default box that has nothing
+   * to do with the map inside it. A row is 56px plus the 8px gap between rows, so a
+   * pixel height converts directly. With an aspect ratio the height follows the column
+   * width, which is not knowable here, so the panel's own default height is the honest
+   * approximation - the user can still drag the card to any size from there.
+   */
+  public getGridOptions(): Record<string, number> {
+    const ROW_HEIGHT = 64;
+    const mode = this._config?.default_mode;
+    const isForecastOnly = mode === 'forecast_only';
+    const hasTabs = mode !== 'map_only' && !isForecastOnly;
+    const panelHeight = this._config?.height ?? (isForecastOnly ? 185 : 450);
+    // Card padding, plus the tab strip where there is one.
+    const chrome = (hasTabs ? 48 : 0) + (this._config?.no_padding ? 0 : 32);
+
+    return {
+      rows: Math.max(2, Math.ceil((panelHeight + chrome) / ROW_HEIGHT)),
+      columns: 12,
+      min_rows: 2,
+      min_columns: 6,
+    };
+  }
+
   private get _isMapOnly(): boolean {
     return this._config.default_mode === 'map_only';
   }

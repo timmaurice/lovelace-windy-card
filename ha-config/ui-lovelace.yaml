@@ -91,3 +91,30 @@ views:
                   aspect_ratio: '16:9'
                   static_map: true
                   autoplay: true
+
+  - title: Test
+    cards:
+    - type: heading
+      heading_style: title
+      icon: mdi:satellite-variant
+    - type: custom:windy-card
+      default_mode: map_only
+      metric_temp: default
+      metric_rain: default
+      metric_wind: default
+      overlay: satellite
+      product: ecmwf
+      level: surface
+      aspect_ratio: '16:9'
+      no_padding: true
+      location: zone.home
+      zoom: 6
+      show_marker: false
+      static_map: true
+      autoplay: true
+      overlay_loop:
+      - satellite
+      - wind
+      - temp
+      overlay_loop_delay: 5
+    icon: mdi:test-tube

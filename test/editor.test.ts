@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import '../src/editor.js';
 import { WindyCardEditor } from '../src/editor.js';
 import { WindyCardConfig, HomeAssistant, HaFormSchema } from '../src/types.js';
@@ -101,6 +101,21 @@ describe('WindyCardEditor', () => {
       const schema = (editor as unknown as { _getSchema: () => HaFormSchema[] })._getSchema();
       const flatSchema = flattenSchema(schema);
       expect(flatSchema.some((s) => s.name === 'allow_geolocation')).toBe(false);
+    });
+  });
+
+  describe('Duplicate resource registration', () => {
+    it('should not throw when the editor module is evaluated a second time', async () => {
+      vi.resetModules();
+      await expect(import('../src/editor.js')).resolves.toBeDefined();
+    });
+
+    it('should keep the originally registered editor element after a second evaluation', async () => {
+      const first = window.customElements.get('windy-card-editor');
+      vi.resetModules();
+      await import('../src/editor.js');
+
+      expect(window.customElements.get('windy-card-editor')).toBe(first);
     });
   });
 });

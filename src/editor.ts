@@ -1,11 +1,11 @@
 import { LitElement, html, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCardEditor, WindyCardConfig, HaFormSchema } from './types.js';
 import { fireEvent } from './utils.js';
 import { localize } from './localize.js';
 import editorStyles from './styles/editor.styles.scss';
+import { EDITOR_ELEMENT_NAME } from './constants.js';
 
-@customElement('windy-card-editor')
 export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config!: WindyCardConfig;
@@ -621,4 +621,16 @@ export class WindyCardEditor extends LitElement implements LovelaceCardEditor {
   }
 
   static styles = unsafeCSS(editorStyles);
+}
+
+// Same reason as the card itself: a duplicate resource evaluates this module twice and an
+// unguarded define would throw.
+if (!customElements.get(EDITOR_ELEMENT_NAME)) {
+  customElements.define(EDITOR_ELEMENT_NAME, WindyCardEditor);
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'windy-card-editor': WindyCardEditor;
+  }
 }

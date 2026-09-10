@@ -1,15 +1,12 @@
 import { LitElement, html, nothing, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCard, LovelaceCardEditor, WindyCardConfig } from './types.js';
 import { localize } from './localize.js';
 import cardStyles from './styles/card.styles.scss';
-
-const ELEMENT_NAME = 'windy-card';
-const EDITOR_ELEMENT_NAME = `${ELEMENT_NAME}-editor`;
+import { ELEMENT_NAME, EDITOR_ELEMENT_NAME } from './constants.js';
 
 type ViewMode = 'map' | 'forecast';
 
-@customElement(ELEMENT_NAME)
 export class WindyCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config!: WindyCardConfig;
@@ -762,11 +759,21 @@ declare global {
   }
 }
 
+// A duplicate Lovelace resource entry loads this bundle twice. An unguarded define throws and
+// takes the second copy down with it, so register only if nobody registered us before.
+if (!customElements.get(ELEMENT_NAME)) {
+  customElements.define(ELEMENT_NAME, WindyCard);
+}
+
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: ELEMENT_NAME,
-  name: 'Windy Card',
-  description: localize(undefined, 'component.windy-card.common.description'),
-  documentationURL: 'https://github.com/timmaurice/lovelace-windy-card',
-  preview: true,
-});
+// Same reason: a second evaluation would otherwise add a second picker entry for the same card,
+// so the card appears twice in "Add card".
+if (!window.customCards.some((card) => card.type === ELEMENT_NAME)) {
+  window.customCards.push({
+    type: ELEMENT_NAME,
+    name: 'Windy Card',
+    description: localize(undefined, 'component.windy-card.common.description'),
+    documentationURL: 'https://github.com/timmaurice/lovelace-windy-card',
+    preview: true,
+  });
+}

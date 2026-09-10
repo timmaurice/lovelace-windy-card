@@ -1051,4 +1051,19 @@ describe('WindyCard', () => {
       vi.useRealTimers();
     });
   });
+
+  describe('Duplicate resource registration', () => {
+    it('should not throw when the bundle is evaluated a second time', async () => {
+      vi.resetModules();
+      await expect(import('../src/windy-card.js')).resolves.toBeDefined();
+    });
+
+    it('should register the card in customCards only once when loaded twice', async () => {
+      vi.resetModules();
+      await import('../src/windy-card.js');
+
+      const entries = (window.customCards ?? []).filter((card) => card.type === 'windy-card');
+      expect(entries).toHaveLength(1);
+    });
+  });
 });

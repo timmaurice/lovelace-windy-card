@@ -94,32 +94,36 @@ describe('WindyCard', () => {
   });
 
   describe('getGridOptions()', () => {
-    it('asks for the full width and a box the map fits in', () => {
+    it('asks for the full width and lets the grid measure the height', () => {
+      // The row count used to be the panel height plus the tab strip plus the
+      // padding, converted into rows - a sum kept in step with the card's own
+      // layout by hand, and simply wrong where `aspect_ratio` decides the
+      // height from a column width this code cannot see.
       const options = makeCard({ aspect_ratio: '16:9' }).getGridOptions();
 
-      expect(options.columns).toBe(12);
+      expect(options.columns).toBe('full');
       expect(options.min_columns).toBe(6);
       expect(options.min_rows).toBe(2);
-      expect(options.rows).toBeGreaterThanOrEqual(8);
+      expect(options.rows).toBe('auto');
     });
 
-    it('asks for less room for the forecast panel than for the map', () => {
-      const forecast = makeCard({ default_mode: 'forecast_only' }).getGridOptions();
-      const map = makeCard({ default_mode: 'map_only' }).getGridOptions();
-
-      expect(forecast.rows).toBeLessThan(map.rows);
-    });
-
-    it('follows an explicit height', () => {
-      const small = makeCard({ height: 200 }).getGridOptions();
-      const large = makeCard({ height: 800 }).getGridOptions();
-
-      expect(large.rows).toBeGreaterThan(small.rows);
+    it('measures rather than guesses, whatever the mode or height', () => {
+      const cases: Partial<WindyCardConfig>[] = [
+        { default_mode: 'forecast_only' },
+        { default_mode: 'map_only' },
+        { height: 200 },
+        { height: 800 },
+        { no_padding: true },
+      ];
+      for (const config of cases) {
+        expect(makeCard(config).getGridOptions().rows).toBe('auto');
+      }
     });
 
     // HA asks the element for its grid options, and it may do so before setConfig().
     it('answers before a config is set', () => {
       expect(() => new WindyCard().getGridOptions()).not.toThrow();
+      expect(new WindyCard().getGridOptions().rows).toBe('auto');
     });
   });
 

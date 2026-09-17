@@ -1,6 +1,6 @@
 import { LitElement, html, nothing, unsafeCSS } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import { HomeAssistant, LovelaceCard, LovelaceCardEditor, WindyCardConfig } from './types.js';
+import { HomeAssistant, LovelaceCard, LovelaceCardEditor, WindyCardConfig, LovelaceGridOptions } from './types.js';
 import { localize } from './localize.js';
 import cardStyles from './styles/card.styles.scss';
 import { ELEMENT_NAME, EDITOR_ELEMENT_NAME } from './constants.js';
@@ -248,26 +248,18 @@ export class WindyCard extends LitElement implements LovelaceCard {
   /**
    * Sections dashboards lay cards out in grid rows instead of letting them size
    * themselves, and a card that does not answer is given a default box that has nothing
-   * to do with the map inside it. A row is 56px plus the 8px gap between rows, so a
-   * pixel height converts directly. With an aspect ratio the height follows the column
-   * width, which is not knowable here, so the panel's own default height is the honest
-   * approximation - the user can still drag the card to any size from there.
+   * to do with the map inside it.
+   *
+   * `rows: 'auto'` rather than the panel height plus the tab strip plus the padding
+   * converted into rows. That sum had to be kept in step with the card's own layout by
+   * hand, and it could not be right at all where `aspect_ratio` is set: the height then
+   * follows the column width, which is not knowable here, so it fell back to the default
+   * height and reserved a box of the wrong size. Whether the panel is sized by an
+   * explicit height or by an aspect ratio's padding, both are intrinsic - Home Assistant
+   * measures the rendered card and gets either one right.
    */
-  public getGridOptions(): Record<string, number> {
-    const ROW_HEIGHT = 64;
-    const mode = this._config?.default_mode;
-    const isForecastOnly = mode === 'forecast_only';
-    const hasTabs = mode !== 'map_only' && !isForecastOnly;
-    const panelHeight = this._config?.height ?? (isForecastOnly ? 185 : 450);
-    // Card padding, plus the tab strip where there is one.
-    const chrome = (hasTabs ? 48 : 0) + (this._config?.no_padding ? 0 : 32);
-
-    return {
-      rows: Math.max(2, Math.ceil((panelHeight + chrome) / ROW_HEIGHT)),
-      columns: 12,
-      min_rows: 2,
-      min_columns: 6,
-    };
+  public getGridOptions(): LovelaceGridOptions {
+    return { columns: 'full', min_columns: 6, rows: 'auto', min_rows: 2 };
   }
 
   private get _isMapOnly(): boolean {

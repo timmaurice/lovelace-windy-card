@@ -32,6 +32,7 @@ A Lovelace card that embeds the [Windy.com](https://www.windy.com) interactive w
 - Catalan
 - Chinese (Simplified)
 - Chinese (Traditional)
+- Czech
 - Danish
 - Dutch
 - English

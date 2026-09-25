@@ -1,6 +1,13 @@
 import { LitElement, html, nothing, unsafeCSS } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import { HomeAssistant, LovelaceCard, LovelaceCardEditor, WindyCardConfig, LovelaceGridOptions } from './types.js';
+import {
+  CustomCardSuggestion,
+  HomeAssistant,
+  LovelaceCard,
+  LovelaceCardEditor,
+  WindyCardConfig,
+  LovelaceGridOptions,
+} from './types.js';
 import { localize } from './localize.js';
 import cardStyles from './styles/card.styles.scss';
 import { ELEMENT_NAME, EDITOR_ELEMENT_NAME } from './constants.js';
@@ -17,6 +24,11 @@ import {
 type ViewMode = 'map' | 'forecast';
 
 const EMBED_URL = 'https://embed.windy.com/embed.html';
+
+const isLatitude = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 90;
+const isLongitude = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 180;
 
 export class WindyCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -239,6 +251,29 @@ export class WindyCard extends LitElement implements LovelaceCard {
     }
 
     return stub;
+  }
+
+  /**
+   * The card the picker suggests for an entity (Home Assistant 2026.6+), or null.
+   *
+   * Only for a zone, and only one that carries usable coordinates: the map centres on the
+   * zone's `latitude`/`longitude`, so a zone without them would preview a map of somewhere
+   * else. Passive zones qualify too - passive only keeps a zone out of presence detection,
+   * its coordinates are as good as any other zone's. `zone.home` qualifies as well, and gets
+   * `getStubConfig`'s answer for it: no `location`, because the card centres on the
+   * instance's own coordinates by itself, and those are what `zone.home` is made from.
+   *
+   * The config is `getStubConfig`'s for that entity, so the preview is the card the picker
+   * would otherwise create. `location` rather than the deprecated `zone_entity`, which
+   * `setConfig` would only migrate to `location` anyway.
+   *
+   * Home Assistant catches a throw here, but nothing in it may throw regardless.
+   */
+  public static getEntitySuggestion(hass: HomeAssistant | undefined, entityId: string): CustomCardSuggestion | null {
+    if (typeof entityId !== 'string' || !entityId.startsWith('zone.')) return null;
+    const attributes = hass?.states?.[entityId]?.attributes;
+    if (!isLatitude(attributes?.latitude) || !isLongitude(attributes?.longitude)) return null;
+    return { config: { type: `custom:${ELEMENT_NAME}`, ...WindyCard.getStubConfig(hass, [entityId]) } };
   }
 
   public getCardSize(): number {
@@ -820,6 +855,7 @@ declare global {
       description: string;
       documentationURL?: string;
       preview?: boolean;
+      getEntitySuggestion?: (hass: HomeAssistant, entityId: string) => CustomCardSuggestion | null;
     }>;
   }
 }
@@ -840,5 +876,6 @@ if (!window.customCards.some((card) => card.type === ELEMENT_NAME)) {
     description: localize(undefined, 'component.windy-card.common.description'),
     documentationURL: 'https://github.com/timmaurice/lovelace-windy-card',
     preview: true,
+    getEntitySuggestion: (hass: HomeAssistant, entityId: string) => WindyCard.getEntitySuggestion(hass, entityId),
   });
 }

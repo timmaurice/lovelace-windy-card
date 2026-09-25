@@ -733,6 +733,86 @@ describe('WindyCard', () => {
     });
   });
 
+  describe('getEntitySuggestion()', () => {
+    const zoneHass = {
+      ...mockHass,
+      states: {
+        'zone.home': { state: '1', attributes: { latitude: 48.0, longitude: 11.0, radius: 100 } },
+        'zone.sailing_club': { state: '0', attributes: { latitude: 53.55, longitude: 9.99, radius: 200 } },
+        'zone.office': { state: '0', attributes: { latitude: 51.2, longitude: 6.7, passive: true } },
+        'zone.no_coords': { state: '0', attributes: {} },
+        'zone.string_coords': { state: '0', attributes: { latitude: '53.5', longitude: '9.9' } },
+        'zone.out_of_range': { state: '0', attributes: { latitude: 123, longitude: 9.9 } },
+        'zone.nan': { state: '0', attributes: { latitude: NaN, longitude: 9.9 } },
+        'device_tracker.phone': { state: 'home', attributes: { latitude: 53.55, longitude: 9.99 } },
+      },
+    } as unknown as HomeAssistant;
+
+    // Through the registered entry, since that is the path Home Assistant takes.
+    const suggest = (hass: HomeAssistant | undefined, entityId: string) =>
+      window.customCards
+        .find((card) => card.type === 'windy-card')
+        ?.getEntitySuggestion?.(hass as HomeAssistant, entityId);
+
+    it('suggests the card centred on a zone', () => {
+      expect(suggest(zoneHass, 'zone.sailing_club')).toEqual({
+        config: { type: 'custom:windy-card', aspect_ratio: '16:9', location: 'zone.sailing_club' },
+      });
+    });
+
+    it('suggests exactly the card the picker would otherwise create', () => {
+      for (const entityId of ['zone.sailing_club', 'zone.office', 'zone.home']) {
+        const { type, ...rest } = suggest(zoneHass, entityId)?.config ?? {};
+        expect(type, entityId).toBe('custom:windy-card');
+        expect(rest, entityId).toEqual(WindyCard.getStubConfig(zoneHass, [entityId]));
+      }
+    });
+
+    it('suggests a passive zone, whose coordinates are as usable as any', () => {
+      expect(suggest(zoneHass, 'zone.office')?.config.location).toBe('zone.office');
+    });
+
+    // The card centres on the instance's own coordinates by itself, and zone.home is made
+    // from them, so the suggestion does not pin it.
+    it('suggests zone.home without naming it', () => {
+      const config = suggest(zoneHass, 'zone.home')?.config;
+      expect(config).toEqual({ type: 'custom:windy-card', aspect_ratio: '16:9' });
+    });
+
+    it('suggests a config the card accepts and centres on the zone', () => {
+      const config = suggest(zoneHass, 'zone.sailing_club')?.config as WindyCardConfig;
+      const card = new WindyCard();
+      card.hass = zoneHass;
+      expect(() => card.setConfig({ ...config, overlay: 'wind' })).not.toThrow();
+      const src = getIframeSrc(card);
+      expect(src).toContain('lat=53.55');
+      expect(src).toContain('lon=9.99');
+    });
+
+    it('does not suggest the card for a zone without usable coordinates', () => {
+      for (const entityId of ['zone.no_coords', 'zone.string_coords', 'zone.out_of_range', 'zone.nan']) {
+        expect(suggest(zoneHass, entityId), entityId).toBeNull();
+      }
+    });
+
+    it('does not suggest the card for other domains, even with coordinates', () => {
+      expect(suggest(zoneHass, 'device_tracker.phone')).toBeNull();
+      expect(suggest(zoneHass, 'sensor.zone_count')).toBeNull();
+    });
+
+    it('does not suggest the card for an unknown zone', () => {
+      expect(suggest(zoneHass, 'zone.missing')).toBeNull();
+    });
+
+    it('does not throw on a missing hass or a malformed entity id', () => {
+      expect(suggest(undefined, 'zone.sailing_club')).toBeNull();
+      expect(suggest({} as HomeAssistant, 'zone.sailing_club')).toBeNull();
+      expect(suggest(zoneHass, undefined as unknown as string)).toBeNull();
+      expect(suggest(zoneHass, 42 as unknown as string)).toBeNull();
+      expect(suggest({ states: { 'zone.x': null } } as unknown as HomeAssistant, 'zone.x')).toBeNull();
+    });
+  });
+
   describe('Modes and Padding', () => {
     it('sets isMapOnly when default_mode is map_only', () => {
       const card = makeCard({ default_mode: 'map_only' });

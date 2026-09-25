@@ -70,6 +70,12 @@ export interface LovelaceCardConfig {
   [key: string]: unknown;
 }
 
+/** One card the picker offers for an entity (`window.customCards[].getEntitySuggestion`, HA 2026.6+). */
+export interface CustomCardSuggestion {
+  config: LovelaceCardConfig;
+  label?: string;
+}
+
 export interface LovelaceCardEditor {
   hass?: HomeAssistant;
   setConfig(config: LovelaceCardConfig): void;

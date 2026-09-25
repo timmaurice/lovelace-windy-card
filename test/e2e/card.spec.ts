@@ -80,10 +80,28 @@ test.describe('The card on a sections dashboard', () => {
     await expect(card.locator('ha-card')).toBeVisible({ timeout: 60_000 });
 
     // Through the locator, because the card lives inside the dashboard's shadow roots.
-    const options = await card.evaluate((element: HTMLElement & { getGridOptions?: () => unknown }) =>
-      element.getGridOptions ? element.getGridOptions() : null,
+    // The literal getGridOptions() returns is pinned by the unit test; copying it here
+    // only went stale. What this test adds is that Home Assistant lays the card out by
+    // whatever the served bundle answers: a numeric width lands on the wrapper as
+    // --column-size, while columns: 'full' sets none and marks the wrapper full-width.
+    const { options, wrapper } = await card.evaluate(
+      (element: HTMLElement & { getGridOptions?: () => { columns?: number | 'full' } }) => {
+        const cell = element.closest('.card') as HTMLElement | null;
+        return {
+          options: element.getGridOptions ? element.getGridOptions() : null,
+          wrapper: {
+            columnSize: cell?.style.getPropertyValue('--column-size').trim(),
+            fullWidth: cell?.classList.contains('full-width'),
+          },
+        };
+      },
     );
-    expect(options).toMatchObject({ columns: 12, min_columns: 6, min_rows: 2 });
+    expect(options).not.toBeNull();
+    expect(wrapper).toEqual(
+      options!.columns === 'full'
+        ? { columnSize: '', fullWidth: true }
+        : { columnSize: String(options!.columns), fullWidth: false },
+    );
 
     // And the map is really there at a usable size, not squeezed into a stub of a card.
     const box = (await card.locator('ha-card').boundingBox())!;

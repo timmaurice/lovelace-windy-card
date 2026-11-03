@@ -12,13 +12,16 @@ permissions:
 jobs:
   check-version:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
           cache: 'npm'
@@ -32,8 +35,12 @@ jobs:
 
       - name: Format snapshot and create PR
         if: steps.check.outputs.updated == 'true'
+        # The version fields come from Windy's script, so they reach the shell as data, not as code.
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WINDY_VERSION: ${{ steps.check.outputs.version }}
+          WINDY_BUILD: ${{ steps.check.outputs.build }}
+          WINDY_ASSETS: ${{ steps.check.outputs.assets }}
         run: |
           # Format the snapshot file using Prettier
           npx prettier --write scripts/windy-embed-snapshot.js
@@ -43,24 +50,24 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
           # Create a new branch
-          BRANCH_NAME="windy-update-${{ steps.check.outputs.assets }}"
+          BRANCH_NAME="windy-update-${WINDY_ASSETS}"
           git checkout -b "$BRANCH_NAME"
 
           # Stage and commit the changes
           git add scripts/windy-embed-version.json scripts/windy-embed-snapshot.js
-          git commit -m "chore(deps): update Windy embed script to ${{ steps.check.outputs.version }}"
+          git commit -m "chore(deps): update Windy embed script to ${WINDY_VERSION}"
 
-          # Push the branch
-          git push origin "$BRANCH_NAME" --force
+          # Push the branch. The checkout keeps no credentials, so the token goes in here.
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$BRANCH_NAME" --force
 
           # Create the Pull Request using GitHub CLI
           gh pr create \
-            --title "chore(deps): Windy embed script update detected (${{ steps.check.outputs.version }})" \
+            --title "chore(deps): Windy embed script update detected (${WINDY_VERSION})" \
             --body "A new version of the Windy embed script has been detected online.
             
-            - **Version:** ${{ steps.check.outputs.version }}
-            - **Build Date:** ${{ steps.check.outputs.build }}
-            - **Assets Path:** ${{ steps.check.outputs.assets }}
+            - **Version:** ${WINDY_VERSION}
+            - **Build Date:** ${WINDY_BUILD}
+            - **Assets Path:** ${WINDY_ASSETS}
             
             Please review the file changes in this Pull Request to check if there are any updates to available layers, products, or parameter schemas." \
             --base main \

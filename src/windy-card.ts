@@ -28,6 +28,11 @@ const EMBED_URL = 'https://embed.windy.com/embed.html';
  * Windy needs scripts and its own origin to run, and popups for its attribution links.
  * Everything else (top navigation, downloads, modals) stays blocked.
  */
+// How long a frame may take to fire `load` before the card offers a retry, and the minimum gap
+// between automatic retries triggered by `online` / `visibilitychange`.
+const FRAME_STALL_MS = 15000;
+const AUTO_RELOAD_MIN_MS = 30000;
+
 const IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox';
 
 /** Common ratios as YAML 1.1 reads them unquoted: `16:9` is the base-60 number 969. */
@@ -64,6 +69,14 @@ export class WindyCard extends LitElement implements LovelaceCard {
   private _loopTimer?: ReturnType<typeof setInterval>;
   private _lastLoopParams?: { overlays: string[]; delay: number };
   private _insecureContextWarned: boolean = false;
+
+  // Windy can be blocked or unreachable (ad blocker, offline, DNS). The iframe is cross-origin,
+  // so its state cannot be read: a frame that has not fired `load` after FRAME_STALL_MS, or that
+  // loaded while the browser was offline, is treated as stalled and gets a retry notice.
+  @state() private _stalled: boolean = false;
+  private _frameSrc = new WeakMap<HTMLIFrameElement, string>();
+  private _frameTimers = new Map<HTMLIFrameElement, ReturnType<typeof setTimeout>>();
+  private _lastAutoReload: number = 0;
 
   public setConfig(config: WindyCardConfig): void {
     if (!config) {
@@ -138,6 +151,8 @@ export class WindyCard extends LitElement implements LovelaceCard {
     this._setupLoopTimer();
     document.addEventListener('fullscreenchange', this._handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', this._handleFullscreenChange);
+    window.addEventListener('online', this._handleReconnect);
+    document.addEventListener('visibilitychange', this._handleReconnect);
   }
 
   public disconnectedCallback(): void {
@@ -153,6 +168,9 @@ export class WindyCard extends LitElement implements LovelaceCard {
     document.removeEventListener('fullscreenchange', this._handleFullscreenChange);
     document.removeEventListener('webkitfullscreenchange', this._handleFullscreenChange);
     window.removeEventListener('keydown', this._handleFullscreenKeyDown);
+    window.removeEventListener('online', this._handleReconnect);
+    document.removeEventListener('visibilitychange', this._handleReconnect);
+    this._clearFrameTimers();
     if (this._isFullscreen) {
       this._isFullscreen = false;
       this._exitNativeFullscreen();
@@ -556,15 +574,80 @@ export class WindyCard extends LitElement implements LovelaceCard {
     if (e.currentTarget) {
       const container = (e.currentTarget as HTMLElement).closest('.iframe-container');
       const iframe = container?.querySelector('iframe');
-      if (iframe) {
-        // Force reload original iframe source
-        const currentSrc = iframe.getAttribute('src');
-        if (currentSrc) {
-          iframe.src = 'about:blank';
-          setTimeout(() => {
-            iframe.src = currentSrc;
-          }, 10);
-        }
+      if (iframe) this._reloadFrame(iframe);
+    }
+  }
+
+  /** Forces an iframe to reload its current source. */
+  private _reloadFrame(iframe: HTMLIFrameElement): void {
+    const currentSrc = iframe.getAttribute('src');
+    if (currentSrc && currentSrc !== 'about:blank') {
+      iframe.src = 'about:blank';
+      setTimeout(() => {
+        iframe.src = currentSrc;
+      }, 10);
+      this._watchFrame(iframe);
+    }
+  }
+
+  private get _frames(): HTMLIFrameElement[] {
+    return Array.from(this.renderRoot?.querySelectorAll('iframe') ?? []);
+  }
+
+  private _clearFrameTimers(): void {
+    this._frameTimers.forEach((timer) => clearTimeout(timer));
+    this._frameTimers.clear();
+  }
+
+  /** Starts (or restarts) the "did Windy ever answer" clock for a frame. */
+  private _watchFrame(iframe: HTMLIFrameElement): void {
+    const pending = this._frameTimers.get(iframe);
+    if (pending) clearTimeout(pending);
+    this._frameTimers.set(
+      iframe,
+      setTimeout(() => {
+        this._frameTimers.delete(iframe);
+        this._stalled = true;
+      }, FRAME_STALL_MS),
+    );
+  }
+
+  /** `load` fires for the about:blank reset too, and Chrome also fires it for its error page. */
+  private _handleFrameLoad = (e: Event): void => {
+    const iframe = e.currentTarget as HTMLIFrameElement;
+    if (iframe.getAttribute('src') === 'about:blank') return;
+    const pending = this._frameTimers.get(iframe);
+    if (pending) clearTimeout(pending);
+    this._frameTimers.delete(iframe);
+    if (navigator.onLine === false) {
+      this._stalled = true;
+    } else if (this._frameTimers.size === 0) {
+      this._stalled = false;
+    }
+  };
+
+  /** Back online or the tab is visible again: retry a stalled card, but not in a tight loop. */
+  private _handleReconnect = (): void => {
+    if (document.visibilityState === 'hidden' || navigator.onLine === false || !this._stalled) return;
+    const now = Date.now();
+    if (now - this._lastAutoReload < AUTO_RELOAD_MIN_MS) return;
+    this._lastAutoReload = now;
+    this._retryFrames();
+  };
+
+  private _retryFrames = (): void => {
+    this._stalled = false;
+    this._frames.forEach((iframe) => this._reloadFrame(iframe));
+  };
+
+  /** Registers frames whose src Lit just set or changed with the stall clock. */
+  protected updated(changedProperties: Map<string | number | symbol, unknown>): void {
+    super.updated(changedProperties);
+    for (const iframe of this._frames) {
+      const src = iframe.getAttribute('src') ?? '';
+      if (this._frameSrc.get(iframe) !== src) {
+        this._frameSrc.set(iframe, src);
+        if (src) this._watchFrame(iframe);
       }
     }
   }
@@ -733,6 +816,19 @@ export class WindyCard extends LitElement implements LovelaceCard {
           </button>`
         : '';
 
+    const retryLabel = localize(this.hass, 'component.windy-card.card.retry') ?? 'Retry';
+    const stalledNotice = this._stalled
+      ? html`<div class="frame-notice" role="status">
+          <span
+            >${
+              localize(this.hass, 'component.windy-card.card.frame_stalled') ??
+              'Windy did not respond. It may be blocked or you may be offline.'
+            }</span
+          >
+          <button class="frame-retry" @click=${this._retryFrames}>${retryLabel}</button>
+        </div>`
+      : nothing;
+
     const dblClickHandler = allowFullscreen ? this._handleContainerDblClick : undefined;
 
     // Fullscreen overrides the inline geometry rather than swapping templates, so Lit keeps
@@ -756,8 +852,10 @@ export class WindyCard extends LitElement implements LovelaceCard {
             title="${title}"
             allow="${allow}"
             sandbox="${IFRAME_SANDBOX}"
+            @load=${this._handleFrameLoad}
           ></iframe>
           <div class="action-buttons">${resetButton} ${toggleStaticButton} ${fullscreenButton}</div>
+          ${stalledNotice}
         </div>
       `;
     }
@@ -775,6 +873,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
           title="${title}"
           allow="${allow}"
           sandbox="${IFRAME_SANDBOX}"
+          @load=${this._handleFrameLoad}
           style="${
             isFullscreen
               ? `position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block; ${pointerEvents}`
@@ -782,6 +881,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
           }"
         ></iframe>
         <div class="action-buttons">${resetButton} ${toggleStaticButton} ${fullscreenButton}</div>
+        ${stalledNotice}
       </div>
     `;
   }

@@ -10,6 +10,8 @@
     "disable_interaction": "Désactiver l'interaction",
     "fullscreen": "Plein écran",
     "exit_fullscreen": "Quitter le plein écran",
+    "frame_stalled": "Windy ne répond pas. Il est peut-être bloqué ou vous êtes hors ligne.",
+    "retry": "Réessayer",
     "map_frame": "Carte Windy",
     "forecast_frame": "Prévision locale Windy",
     "entity_problem": {

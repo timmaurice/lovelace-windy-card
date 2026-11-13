@@ -394,7 +394,10 @@ export class WindyCard extends LitElement implements LovelaceCard {
       const lat = locationEntity.attributes['latitude'] as number | undefined;
       const lon = locationEntity.attributes['longitude'] as number | undefined;
       if (lat !== undefined && lon !== undefined) {
-        return { lat, lon };
+        // A tracker reports a new fix every few metres, and each distinct value would build
+        // a new iframe URL and reload Windy. Three decimals (about 100 m) are far finer than
+        // any map zoom this card allows, so rounding keeps the frame still while moving.
+        return { lat: Math.round(lat * 1000) / 1000, lon: Math.round(lon * 1000) / 1000 };
       }
     }
 

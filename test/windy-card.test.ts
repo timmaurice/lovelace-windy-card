@@ -422,6 +422,23 @@ describe('WindyCard', () => {
       expect(src).toContain('lon=9');
     });
 
+    it('rounds tracker coordinates so small GPS jitter keeps the same URL', () => {
+      const urlFor = (latitude: number, longitude: number) => {
+        const card = new WindyCard();
+        card.hass = {
+          ...mockHass,
+          states: { 'device_tracker.phone': { attributes: { latitude, longitude } } },
+        } as unknown as typeof card.hass;
+        card.setConfig({ type: 'custom:windy-card', overlay: 'wind', location: 'device_tracker.phone' });
+        return getIframeSrc(card);
+      };
+      const a = urlFor(51.950312, 7.985912);
+      expect(urlFor(51.950341, 7.985798)).toBe(a);
+      expect(a).toContain('lat=51.95');
+      expect(a).toContain('lon=7.986');
+      expect(urlFor(51.9513, 7.9855)).not.toBe(a);
+    });
+
     it('falls back to lat/lon when zone entity is missing from states', () => {
       const card = makeCard({ overlay: 'wind', location: 'zone.nonexistent', latitude: 51.0, longitude: 7.0 });
       const src = getIframeSrc(card);

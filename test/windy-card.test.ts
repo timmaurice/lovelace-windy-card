@@ -783,6 +783,7 @@ describe('WindyCard', () => {
 
     afterEach(() => {
       vi.useRealTimers();
+      vi.unstubAllGlobals();
       vi.restoreAllMocks();
     });
 
@@ -804,13 +805,14 @@ describe('WindyCard', () => {
       expect(renderCard(makeCard({})).querySelector('.frame-notice')).toBeNull();
     });
 
-    it('clears the clock when the frame loads', () => {
+    it('clears the clock when the frame loads', async () => {
       vi.useFakeTimers();
       setOnline(true);
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ type: 'opaque' }));
       const { card, iframe } = mounted();
       internals(card)._watchFrame(iframe);
       internals(card)._handleFrameLoad({ currentTarget: iframe } as unknown as Event);
-      vi.advanceTimersByTime(60000);
+      await vi.advanceTimersByTimeAsync(60000);
       expect(internals(card)._stalled).toBe(false);
     });
 
@@ -862,6 +864,97 @@ describe('WindyCard', () => {
       internals(card)._stalled = true;
       internals(card)._handleReconnect();
       expect(iframe.getAttribute('src')).toContain('windy.com');
+    });
+  });
+
+  describe('stall clock across reconnects and blocked frames', () => {
+    type Internals = { _stalled: boolean; _frameTimers: Map<HTMLIFrameElement, unknown> };
+    const internals = (card: WindyCard) => card as unknown as Internals;
+
+    async function attach() {
+      const card = makeCard({});
+      document.body.appendChild(card);
+      await card.updateComplete;
+      const iframe = card.shadowRoot!.querySelector('iframe') as HTMLIFrameElement;
+      return { card, iframe };
+    }
+
+    afterEach(() => {
+      document.body.innerHTML = '';
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    // HA moves cards around (connect -> disconnect -> connect) while the dashboard builds. Before
+    // the fix disconnectedCallback cleared the timer and updated() never restarted it for an
+    // unchanged src, so a hanging frame sometimes never produced the retry notice.
+    it('still flags a hanging frame after a disconnect and reconnect', async () => {
+      vi.useFakeTimers();
+      const { card, iframe } = await attach();
+      expect(internals(card)._frameTimers.has(iframe)).toBe(true);
+
+      card.remove();
+      expect(internals(card)._frameTimers.size).toBe(0);
+      document.body.appendChild(card);
+      await card.updateComplete;
+
+      expect(internals(card)._frameTimers.has(iframe)).toBe(true);
+      vi.advanceTimersByTime(16000);
+      expect(internals(card)._stalled).toBe(true);
+    });
+
+    it('does not restart the clock for a frame that already loaded when reconnecting', async () => {
+      vi.useFakeTimers();
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ type: 'opaque' }));
+      const { card, iframe } = await attach();
+      iframe.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(internals(card)._frameTimers.size).toBe(0);
+
+      card.remove();
+      document.body.appendChild(card);
+      await card.updateComplete;
+
+      vi.advanceTimersByTime(60000);
+      expect(internals(card)._stalled).toBe(false);
+    });
+
+    // Chrome fires `load` for its own error page when a blocker refuses the request, so `load` alone
+    // proves nothing. The card confirms Windy with a no-cors probe: it resolves only if the request
+    // reached the network, and rejects when it is blocked.
+    it('shows the retry notice when the frame fires load but Windy is blocked', async () => {
+      vi.useFakeTimers();
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+      const { card, iframe } = await attach();
+      iframe.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(internals(card)._stalled).toBe(true);
+      await card.updateComplete;
+      expect(card.shadowRoot!.querySelector('.frame-notice')).not.toBeNull();
+    });
+
+    it('clears the notice once a load is confirmed', async () => {
+      vi.useFakeTimers();
+      const fetchMock = vi.fn().mockRejectedValueOnce(new TypeError('blocked')).mockResolvedValue({ type: 'opaque' });
+      vi.stubGlobal('fetch', fetchMock);
+      const { card, iframe } = await attach();
+      iframe.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(internals(card)._stalled).toBe(true);
+
+      iframe.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(internals(card)._stalled).toBe(false);
+    });
+
+    it('keeps the stall clock running until the probe confirms Windy', async () => {
+      vi.useFakeTimers();
+      vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})));
+      const { card, iframe } = await attach();
+      iframe.dispatchEvent(new Event('load'));
+      vi.advanceTimersByTime(16000);
+      expect(internals(card)._stalled).toBe(true);
     });
   });
 

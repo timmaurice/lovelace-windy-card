@@ -35,3 +35,12 @@ updates:
       github-actions:
         patterns:
           - '*'
+
+  # The Home Assistant test image is pinned to a release in docker-compose.yml; this
+  # bumps the pin so the tests keep running against a current Home Assistant.
+  - package-ecosystem: 'docker-compose'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    cooldown:
+      default-days: 7

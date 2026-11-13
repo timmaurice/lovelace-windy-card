@@ -10,6 +10,8 @@
     "disable_interaction": "Deshabilitar interacción",
     "fullscreen": "Pantalla completa",
     "exit_fullscreen": "Salir de pantalla completa",
+    "frame_stalled": "Windy no responde. Puede estar bloqueado o no tienes conexión.",
+    "retry": "Reintentar",
     "map_frame": "Mapa de Windy",
     "forecast_frame": "Previsión local de Windy",
     "entity_problem": {

@@ -10,6 +10,8 @@
     "disable_interaction": "禁用互動",
     "fullscreen": "全螢幕",
     "exit_fullscreen": "結束全螢幕",
+    "frame_stalled": "Windy 沒有回應。可能被封鎖，或者你處於離線狀態。",
+    "retry": "重試",
     "map_frame": "Windy 地圖",
     "forecast_frame": "Windy 地點預報",
     "entity_problem": {

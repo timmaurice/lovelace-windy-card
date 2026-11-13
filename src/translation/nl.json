@@ -10,6 +10,8 @@
     "disable_interaction": "Interactie uitschakelen",
     "fullscreen": "Volledig scherm",
     "exit_fullscreen": "Volledig scherm verlaten",
+    "frame_stalled": "Windy reageert niet. Het is mogelijk geblokkeerd of je bent offline.",
+    "retry": "Opnieuw proberen",
     "map_frame": "Windy-kaart",
     "forecast_frame": "Windy-locatievoorspelling",
     "entity_problem": {

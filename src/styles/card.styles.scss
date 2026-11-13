@@ -86,6 +86,35 @@ iframe {
     z-index: 10;
   }
 
+  .frame-notice {
+    position: absolute;
+    left: 50%;
+    bottom: 13px;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: calc(100% - 26px);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    background-color: var(--card-background-color, #ffffff);
+    color: var(--primary-text-color, #000000);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+
+    .frame-retry {
+      flex: none;
+      padding: 4px 10px;
+      border: 1px solid var(--primary-color, #03a9f4);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--primary-color, #03a9f4);
+      font: inherit;
+      cursor: pointer;
+    }
+  }
+
   .action-button {
     background-color: var(--card-background-color, #ffffff);
     color: var(--primary-text-color, #000000);

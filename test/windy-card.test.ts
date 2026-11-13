@@ -758,6 +758,113 @@ describe('WindyCard', () => {
     });
   });
 
+  describe('recovery when Windy does not answer', () => {
+    type Internals = {
+      _stalled: boolean;
+      _watchFrame: (i: HTMLIFrameElement) => void;
+      _handleFrameLoad: (e: Event) => void;
+      _handleReconnect: () => void;
+      _lastAutoReload: number;
+      _frames: HTMLIFrameElement[];
+    };
+    const internals = (card: WindyCard) => card as unknown as Internals;
+
+    function mounted() {
+      const card = makeCard({});
+      const iframe = document.createElement('iframe');
+      iframe.setAttribute('src', 'https://embed.windy.com/embed.html');
+      vi.spyOn(internals(card), '_frames', 'get').mockReturnValue([iframe]);
+      return { card, iframe };
+    }
+
+    function setOnline(value: boolean) {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(value);
+    }
+
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it('flags a frame that never loads and shows a retry notice', () => {
+      vi.useFakeTimers();
+      const { card, iframe } = mounted();
+      internals(card)._watchFrame(iframe);
+      vi.advanceTimersByTime(14000);
+      expect(internals(card)._stalled).toBe(false);
+      vi.advanceTimersByTime(2000);
+      expect(internals(card)._stalled).toBe(true);
+
+      const container = renderCard(card);
+      expect(container.querySelector('.frame-notice')).not.toBeNull();
+      expect(container.querySelector('.frame-retry')).not.toBeNull();
+    });
+
+    it('shows no notice while healthy', () => {
+      expect(renderCard(makeCard({})).querySelector('.frame-notice')).toBeNull();
+    });
+
+    it('clears the clock when the frame loads', () => {
+      vi.useFakeTimers();
+      setOnline(true);
+      const { card, iframe } = mounted();
+      internals(card)._watchFrame(iframe);
+      internals(card)._handleFrameLoad({ currentTarget: iframe } as unknown as Event);
+      vi.advanceTimersByTime(60000);
+      expect(internals(card)._stalled).toBe(false);
+    });
+
+    it('ignores the about:blank load of a reset', () => {
+      vi.useFakeTimers();
+      const { card, iframe } = mounted();
+      internals(card)._watchFrame(iframe);
+      iframe.setAttribute('src', 'about:blank');
+      internals(card)._handleFrameLoad({ currentTarget: iframe } as unknown as Event);
+      vi.advanceTimersByTime(16000);
+      expect(internals(card)._stalled).toBe(true);
+    });
+
+    it('treats a load while offline as stalled', () => {
+      setOnline(false);
+      const { card, iframe } = mounted();
+      internals(card)._handleFrameLoad({ currentTarget: iframe } as unknown as Event);
+      expect(internals(card)._stalled).toBe(true);
+    });
+
+    it('reloads a stalled frame when the browser comes back online', () => {
+      vi.useFakeTimers();
+      setOnline(true);
+      const { card, iframe } = mounted();
+      internals(card)._stalled = true;
+      internals(card)._handleReconnect();
+      expect(internals(card)._stalled).toBe(false);
+      expect(iframe.getAttribute('src')).toBe('about:blank');
+      vi.advanceTimersByTime(20);
+      expect(iframe.getAttribute('src')).toBe('https://embed.windy.com/embed.html');
+    });
+
+    it('does not auto-reload a healthy card, offline, or in a tight loop', () => {
+      vi.useFakeTimers();
+      const { card, iframe } = mounted();
+
+      setOnline(true);
+      internals(card)._handleReconnect();
+      expect(iframe.getAttribute('src')).toContain('windy.com');
+
+      internals(card)._stalled = true;
+      setOnline(false);
+      internals(card)._handleReconnect();
+      expect(iframe.getAttribute('src')).toContain('windy.com');
+
+      setOnline(true);
+      internals(card)._handleReconnect();
+      vi.advanceTimersByTime(20);
+      internals(card)._stalled = true;
+      internals(card)._handleReconnect();
+      expect(iframe.getAttribute('src')).toContain('windy.com');
+    });
+  });
+
   describe('customCards registration', () => {
     it('registers the card in window.customCards', () => {
       expect(window.customCards.some((c) => c.type === 'windy-card')).toBe(true);

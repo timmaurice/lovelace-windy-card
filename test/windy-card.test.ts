@@ -880,6 +880,17 @@ describe('WindyCard', () => {
       expect(renderIframe(card, 'forecast')?.getAttribute('allow')).toBe('geolocation');
     });
 
+    it('sandboxes both iframes without blocking scripts, same-origin or popups', () => {
+      for (const panel of ['map', 'forecast'] as const) {
+        const sandbox = renderIframe(makeCard({ allow_geolocation: true }), panel)?.getAttribute('sandbox') ?? '';
+        expect(sandbox.split(' ')).toEqual(
+          expect.arrayContaining(['allow-scripts', 'allow-same-origin', 'allow-popups']),
+        );
+        expect(sandbox).not.toContain('allow-top-navigation');
+      }
+      expect(renderIframe(makeCard({ aspect_ratio: '', height: 400 }))?.hasAttribute('sandbox')).toBe(true);
+    });
+
     it('omits the allow attribute when the option is off', () => {
       expect(renderIframe(makeCard({ aspect_ratio: '16:9' }))?.hasAttribute('allow')).toBe(false);
       expect(renderIframe(makeCard({ aspect_ratio: '', height: 400 }))?.hasAttribute('allow')).toBe(false);

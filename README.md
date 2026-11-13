@@ -295,6 +295,10 @@ Below is the list of supported forecast models and data providers. Regional mode
 
 </details>
 
+## Privacy
+
+The card shows Windy through an `<iframe>` that loads `embed.windy.com`. Windy therefore receives your IP address and the map or spot coordinates (taken from `latitude`/`longitude`, or from the entity set in `location`, which may be a moving device tracker) with every request, and may set its own cookies. Nothing else is sent by the card. The frame is sandboxed (scripts, same-origin and popups only) and gets access to your position only if you enable [`allow_geolocation`](#precise-location-allow_geolocation).
+
 ## Known Limitations
 
 <details>

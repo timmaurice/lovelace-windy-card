@@ -404,6 +404,15 @@ zoom: 6
 
 4. Point your HA Lovelace resource to `dist/windy-card.js`.
 
+5. Run the end-to-end suite (needs Docker; builds the card, starts Home Assistant from
+   `docker-compose.yml` on port 8140, onboards it and drives the card in Chromium; windy.com is
+   stubbed, so no network access to it is needed):
+
+   ```bash
+   npx playwright install chromium
+   npm run test:e2e
+   ```
+
 </details>
 
 ---

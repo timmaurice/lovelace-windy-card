@@ -51,10 +51,14 @@ export const PASSWORD = process.env.HA_E2E_PASSWORD ?? 'password';
  * repositories: the suite passed against an old bundle and said nothing about
  * the code under test.
  */
-function assertBundleIsCurrent(): void {
+function bundleIsCurrent(): boolean {
   const { version } = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8')) as { version: string };
-  const bundle = readFileSync(BUNDLE, 'utf8');
-  if (!bundle.includes(`v${version}`)) {
+  return readFileSync(BUNDLE, 'utf8').includes(`v${version}`);
+}
+
+function assertBundleIsCurrent(): void {
+  if (!bundleIsCurrent()) {
+    const { version } = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8')) as { version: string };
     throw new Error(
       `dist/${BUNDLE_NAME} does not carry v${version} - the built bundle is stale, run \`npm run build\``,
     );
@@ -66,11 +70,70 @@ export function ensureRunning(): void {
   // The container serves the card straight out of dist/. Without a build there
   // is nothing to load, and every spec would fail on a missing custom element
   // instead of saying what is actually wrong.
-  if (!existsSync(BUNDLE)) {
-    throw new Error(`No ${BUNDLE} - run \`npm run build\` before the end-to-end suite`);
+  // A fresh clone has no dist/ (it is gitignored), so build it rather than fail.
+  if (!existsSync(BUNDLE) || !bundleIsCurrent()) {
+    execFileSync('npm', ['run', 'build'], { cwd: REPO_ROOT, stdio: 'inherit' });
   }
   assertBundleIsCurrent();
   execFileSync('docker', ['compose', 'up', '-d'], { cwd: COMPOSE_DIR, stdio: 'inherit' });
+}
+
+/**
+ * Completes Home Assistant's first-run onboarding through its HTTP API.
+ *
+ * `ha-config/.storage` is not tracked, so a clean checkout starts an instance
+ * that has no user at all. The suite creates the admin user itself instead of
+ * relying on a config directory that only exists on one machine. When the
+ * instance is already onboarded (a developer's long-lived container) this does
+ * nothing.
+ */
+export async function ensureOnboarded(): Promise<void> {
+  const status = await fetch(`${BASE_URL}/api/onboarding`);
+  // Once onboarding is finished the endpoint is gone (404).
+  if (status.status === 404) return;
+  const steps = (await status.json()) as { step: string; done: boolean }[];
+  if (steps.every((step) => step.done)) return;
+
+  const clientId = `${BASE_URL}/`;
+  const json = { 'Content-Type': 'application/json' };
+  const post = async (path: string, body: unknown, token?: string): Promise<Response> => {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers: token ? { ...json, Authorization: `Bearer ${token}` } : json,
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`onboarding ${path} failed: ${res.status} ${await res.text()}`);
+    return res;
+  };
+
+  const pending = (step: string) => steps.some((s) => s.step === step && !s.done);
+  if (pending('user')) {
+    const created = (await (
+      await post('/api/onboarding/users', {
+        client_id: clientId,
+        name: 'Admin',
+        username: USERNAME,
+        password: PASSWORD,
+        language: 'en',
+      })
+    ).json()) as { auth_code: string };
+    const tokenRes = await fetch(`${BASE_URL}/auth/token`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: created.auth_code,
+        client_id: clientId,
+      }),
+    });
+    if (!tokenRes.ok) throw new Error(`onboarding token exchange failed: ${tokenRes.status}`);
+    const { access_token: token } = (await tokenRes.json()) as { access_token: string };
+    for (const step of ['core_config', 'analytics']) {
+      if (pending(step)) await post(`/api/onboarding/${step}`, {}, token);
+    }
+    if (pending('integration')) {
+      await post('/api/onboarding/integration', { client_id: clientId, redirect_uri: clientId }, token);
+    }
+  }
 }
 
 export async function waitForFrontend(timeoutMs = 180_000): Promise<void> {

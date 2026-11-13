@@ -12,7 +12,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : 4,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  reporter: process.env.CI ? 'list' : [['list'], ['html', { open: 'never' }]],
+  reporter: [['list'], ['html', { open: 'never' }]],
   timeout: 90_000,
   globalSetup: './test/e2e/global-setup.ts',
   use: {

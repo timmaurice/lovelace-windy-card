@@ -24,6 +24,11 @@ import {
 type ViewMode = 'map' | 'forecast';
 
 const EMBED_URL = 'https://embed.windy.com/embed.html';
+/**
+ * Windy needs scripts and its own origin to run, and popups for its attribution links.
+ * Everything else (top navigation, downloads, modals) stays blocked.
+ */
+const IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox';
 
 /** Common ratios as YAML 1.1 reads them unquoted: `16:9` is the base-60 number 969. */
 const SEXAGESIMAL_RATIOS: Record<number, string> = {
@@ -750,6 +755,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
             src="${url}"
             title="${title}"
             allow="${allow}"
+            sandbox="${IFRAME_SANDBOX}"
           ></iframe>
           <div class="action-buttons">${resetButton} ${toggleStaticButton} ${fullscreenButton}</div>
         </div>
@@ -768,6 +774,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
           src="${url}"
           title="${title}"
           allow="${allow}"
+          sandbox="${IFRAME_SANDBOX}"
           style="${
             isFullscreen
               ? `position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block; ${pointerEvents}`

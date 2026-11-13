@@ -7,4 +7,4 @@ services:
       - ./ha-config:/config
       - ./dist:/config/www
     ports:
-      - 8123:8123
+      - 8140:8123

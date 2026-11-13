@@ -140,6 +140,27 @@ describe('WindyCard', () => {
       expect(() => card.setConfig(null as unknown as WindyCardConfig)).toThrow('Invalid configuration');
     });
 
+    it.each([
+      [969, '16:9'],
+      [243, '4:3'],
+      [182, '3:2'],
+      [61, '1:1'],
+      [121, '2:1'],
+      [1269, '21:9'],
+    ])('restores unquoted YAML ratio %i to %s', (value, expected) => {
+      const card = makeCard({ aspect_ratio: value as unknown as string });
+      expect((card as unknown as { _config: WindyCardConfig })._config.aspect_ratio).toBe(expected);
+      const getRatioPadding = (card as unknown as { _getRatioPadding: () => string | null })._getRatioPadding;
+      expect(getRatioPadding.call(card)).not.toBeNull();
+    });
+
+    it('rejects an unknown numeric aspect_ratio with a hint to quote it', () => {
+      const card = new WindyCard();
+      expect(() => card.setConfig({ type: 'custom:windy-card', aspect_ratio: 5 as unknown as string })).toThrow(
+        /quoted string/,
+      );
+    });
+
     it('sets default_mode from config', () => {
       const card = makeCard({ default_mode: 'forecast' });
       // _mode is private but we can verify via render (no hass → empty)

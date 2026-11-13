@@ -118,6 +118,9 @@ The card is fully configurable through the Lovelace UI editor. Options are organ
 | `height`       | number  | —       | Fixed height in px. Takes precedence over `aspect_ratio`.                                        |
 | `no_padding`   | boolean | `false` | Remove padding and border from `ha-card` (applies to all modes)                                  |
 
+Quote the ratio in YAML (`aspect_ratio: '16:9'`). Unquoted, YAML 1.1 reads `16:9` as the number 969;
+the card restores the common ratios (`16:9`, `4:3`, `3:2`, `2:1`, `1:1`, `21:9`) and rejects any other number.
+
 `height` wins wherever both are set — clear it to go back to a responsive card. With
 neither, the map falls back to 450px.
 

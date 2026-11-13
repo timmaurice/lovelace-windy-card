@@ -25,6 +25,16 @@ type ViewMode = 'map' | 'forecast';
 
 const EMBED_URL = 'https://embed.windy.com/embed.html';
 
+/** Common ratios as YAML 1.1 reads them unquoted: `16:9` is the base-60 number 969. */
+const SEXAGESIMAL_RATIOS: Record<number, string> = {
+  61: '1:1',
+  121: '2:1',
+  182: '3:2',
+  243: '4:3',
+  969: '16:9',
+  1269: '21:9',
+};
+
 const isLatitude = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 90;
 const isLongitude = (value: unknown): value is number =>
@@ -74,6 +84,18 @@ export class WindyCard extends LitElement implements LovelaceCard {
     if (newConfig.overlay_loop_delay !== undefined) {
       const delay = Number(newConfig.overlay_loop_delay);
       newConfig.overlay_loop_delay = !isNaN(delay) && delay > 0 ? delay : 30;
+    }
+
+    if (newConfig.aspect_ratio !== undefined && typeof newConfig.aspect_ratio !== 'string') {
+      // YAML 1.1 reads an unquoted `16:9` as a base-60 number (16 * 60 + 9 = 969).
+      const raw: unknown = newConfig.aspect_ratio;
+      const restored = typeof raw === 'number' ? SEXAGESIMAL_RATIOS[raw] : undefined;
+      if (!restored) {
+        throw new Error(
+          `Invalid aspect_ratio ${JSON.stringify(raw)}: write the ratio as a quoted string, e.g. aspect_ratio: '16:9'`,
+        );
+      }
+      newConfig.aspect_ratio = restored;
     }
 
     this._config = newConfig;

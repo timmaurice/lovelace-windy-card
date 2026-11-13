@@ -13,6 +13,15 @@ import { BASE_URL } from '../helpers/homeassistant';
  * raised outside our origin are dropped.
  */
 export const test = base.extend<{ consoleErrors: string[] }>({
+  // The card only needs the iframe element and its src; windy.com itself must
+  // not decide whether the suite passes (CI, sandboxes, outages), so the
+  // embed document is answered locally.
+  context: async ({ context }, use) => {
+    await context.route('https://embed.windy.com/**', (route) =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>windy stub</title>' }),
+    );
+    await use(context);
+  },
   consoleErrors: async ({ page }, use) => {
     const errors: string[] = [];
     page.on('console', (message) => {

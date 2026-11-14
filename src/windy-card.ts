@@ -71,10 +71,11 @@ export class WindyCard extends LitElement implements LovelaceCard {
   private _insecureContextWarned: boolean = false;
 
   // Windy can be blocked or unreachable (ad blocker, offline, DNS). The iframe is cross-origin,
-  // so its state cannot be read: a frame that has not fired `load` after FRAME_STALL_MS, or that
-  // loaded while the browser was offline, is treated as stalled and gets a retry notice.
+  // so its state cannot be read: a frame that Windy has not confirmed (see _handleFrameLoad) after
+  // FRAME_STALL_MS, or that loaded while the browser was offline, is treated as stalled and gets a retry notice.
   @state() private _stalled: boolean = false;
   private _frameSrc = new WeakMap<HTMLIFrameElement, string>();
+  private _confirmedFrames = new WeakSet<HTMLIFrameElement>();
   private _frameTimers = new Map<HTMLIFrameElement, ReturnType<typeof setTimeout>>();
   private _lastAutoReload: number = 0;
 
@@ -153,6 +154,8 @@ export class WindyCard extends LitElement implements LovelaceCard {
     document.addEventListener('webkitfullscreenchange', this._handleFullscreenChange);
     window.addEventListener('online', this._handleReconnect);
     document.addEventListener('visibilitychange', this._handleReconnect);
+    // disconnectedCallback dropped the stall clocks; re-register frames that are still unconfirmed.
+    if (this.hasUpdated) this.requestUpdate();
   }
 
   public disconnectedCallback(): void {
@@ -601,6 +604,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
 
   /** Starts (or restarts) the "did Windy ever answer" clock for a frame. */
   private _watchFrame(iframe: HTMLIFrameElement): void {
+    this._confirmedFrames.delete(iframe);
     const pending = this._frameTimers.get(iframe);
     if (pending) clearTimeout(pending);
     this._frameTimers.set(
@@ -612,19 +616,57 @@ export class WindyCard extends LitElement implements LovelaceCard {
     );
   }
 
-  /** `load` fires for the about:blank reset too, and Chrome also fires it for its error page. */
+  /**
+   * `load` fires for the about:blank reset too, and Chrome also fires it for its own error page
+   * when a blocker refuses the request, so a `load` alone is not proof that Windy answered. The
+   * frame is cross-origin and Windy sends no postMessage, so the card confirms with a no-cors
+   * request to the same URL (without the query): it resolves (opaque) only when the request
+   * reached the network and rejects when it is blocked or offline. The stall clock keeps running
+   * until that probe succeeds, which also covers a probe that hangs.
+   */
   private _handleFrameLoad = (e: Event): void => {
     const iframe = e.currentTarget as HTMLIFrameElement;
-    if (iframe.getAttribute('src') === 'about:blank') return;
+    const src = iframe.getAttribute('src') ?? '';
+    if (!src || src === 'about:blank') return;
+    if (navigator.onLine === false) {
+      this._clearFrameTimer(iframe);
+      this._stalled = true;
+      return;
+    }
+    if (typeof fetch !== 'function') {
+      this._confirmFrame(iframe);
+      return;
+    }
+    let probeUrl = src;
+    try {
+      const url = new URL(src, window.location.href);
+      probeUrl = url.origin + url.pathname;
+    } catch {
+      /* keep src */
+    }
+    fetch(probeUrl, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' }).then(
+      () => {
+        if (iframe.getAttribute('src') === src) this._confirmFrame(iframe);
+      },
+      () => {
+        if (iframe.getAttribute('src') !== src) return;
+        this._clearFrameTimer(iframe);
+        this._stalled = true;
+      },
+    );
+  };
+
+  private _clearFrameTimer(iframe: HTMLIFrameElement): void {
     const pending = this._frameTimers.get(iframe);
     if (pending) clearTimeout(pending);
     this._frameTimers.delete(iframe);
-    if (navigator.onLine === false) {
-      this._stalled = true;
-    } else if (this._frameTimers.size === 0) {
-      this._stalled = false;
-    }
-  };
+  }
+
+  private _confirmFrame(iframe: HTMLIFrameElement): void {
+    this._clearFrameTimer(iframe);
+    this._confirmedFrames.add(iframe);
+    if (this._frameTimers.size === 0) this._stalled = false;
+  }
 
   /** Back online or the tab is visible again: retry a stalled card, but not in a tight loop. */
   private _handleReconnect = (): void => {
@@ -648,6 +690,9 @@ export class WindyCard extends LitElement implements LovelaceCard {
       if (this._frameSrc.get(iframe) !== src) {
         this._frameSrc.set(iframe, src);
         if (src) this._watchFrame(iframe);
+      } else if (src && !this._stalled && !this._confirmedFrames.has(iframe) && !this._frameTimers.has(iframe)) {
+        // Reconnected: disconnectedCallback dropped this frame's clock but its src did not change.
+        this._watchFrame(iframe);
       }
     }
   }

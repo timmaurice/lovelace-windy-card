@@ -67,6 +67,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
   private _pendingForecastUrl: string = '';
   private _bypassThrottle: boolean = false;
   private _loopTimer?: ReturnType<typeof setInterval>;
+  private _trackerCentre?: { lat: number; lon: number };
   private _lastLoopParams?: { overlays: string[]; delay: number };
   private _insecureContextWarned: boolean = false;
 
@@ -430,7 +431,12 @@ export class WindyCard extends LitElement implements LovelaceCard {
         // A tracker reports a new fix every few metres, and each distinct value would build
         // a new iframe URL and reload Windy. Three decimals (about 100 m) are far finer than
         // any map zoom this card allows, so rounding keeps the frame still while moving.
-        return { lat: Math.round(lat * 1000) / 1000, lon: Math.round(lon * 1000) / 1000 };
+        // Rounding alone flips on every fix when a parked phone sits near x.xxx5, so the
+        // centre only moves once the fix is about 200 m away from it.
+        const last = this._trackerCentre;
+        if (last && Math.abs(lat - last.lat) < 0.002 && Math.abs(lon - last.lon) < 0.002) return last;
+        this._trackerCentre = { lat: Math.round(lat * 1000) / 1000, lon: Math.round(lon * 1000) / 1000 };
+        return this._trackerCentre;
       }
     }
 

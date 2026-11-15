@@ -439,6 +439,26 @@ describe('WindyCard', () => {
       expect(urlFor(51.9513, 7.9855)).not.toBe(a);
     });
 
+    it('keeps a parked tracker still when its fix jitters across a rounding boundary', () => {
+      const card = new WindyCard();
+      const fix = (latitude: number) => {
+        card.hass = {
+          ...mockHass,
+          states: { 'device_tracker.phone': { attributes: { latitude, longitude: 8 } } },
+        } as unknown as typeof card.hass;
+        (card as unknown as { performUpdate: () => void }).performUpdate();
+        return getIframeSrc(card);
+      };
+      card.setConfig({ type: 'custom:windy-card', overlay: 'wind', location: 'device_tracker.phone' });
+      card.connectedCallback();
+      const parked = fix(52.00049);
+      // 2 m of jitter around 52.0005 would otherwise flip the rounded centre and reload Windy.
+      expect(fix(52.00051)).toBe(parked);
+      expect(fix(52.00049)).toBe(parked);
+      expect(fix(52.003)).toContain('lat=52.003');
+      card.disconnectedCallback();
+    });
+
     it('falls back to lat/lon when zone entity is missing from states', () => {
       const card = makeCard({ overlay: 'wind', location: 'zone.nonexistent', latitude: 51.0, longitude: 7.0 });
       const src = getIframeSrc(card);

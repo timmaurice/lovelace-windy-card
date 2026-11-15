@@ -1515,6 +1515,28 @@ describe('WindyCard', () => {
       vi.useRealTimers();
     });
 
+    it('drops a deferred move when the tracker returns before it fires', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ update_interval: 5, location: 'zone.home' });
+      const hassAt = (latitude: number) =>
+        ({
+          ...mockHass,
+          states: { 'zone.home': { attributes: { latitude, longitude: 9.0 } } },
+        }) as unknown as typeof card.hass;
+      const performUpdate = () => (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      card.hass = hassAt(53.0);
+      performUpdate();
+      card.hass = hassAt(54.0);
+      performUpdate();
+      card.hass = hassAt(53.0);
+      performUpdate();
+      vi.advanceTimersByTime(5000);
+
+      expect(getIframeSrc(card)).toContain('lat=53');
+      vi.useRealTimers();
+    });
+
     it('bypasses throttle on config change', () => {
       vi.useFakeTimers();
       const card = makeCard({ update_interval: 5, latitude: 48.0, longitude: 11.0 });

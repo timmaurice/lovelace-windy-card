@@ -266,6 +266,10 @@ export class WindyCard extends LitElement implements LovelaceCard {
           }, remaining);
         }
       }
+    } else if (this._throttleTimer) {
+      // Back where the map already is: the deferred move is stale.
+      clearTimeout(this._throttleTimer);
+      this._throttleTimer = undefined;
     }
   }
 

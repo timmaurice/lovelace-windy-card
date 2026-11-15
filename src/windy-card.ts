@@ -67,6 +67,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
   private _pendingForecastUrl: string = '';
   private _bypassThrottle: boolean = false;
   private _loopTimer?: ReturnType<typeof setInterval>;
+  private _trackerCentre?: { lat: number; lon: number };
   private _lastLoopParams?: { overlays: string[]; delay: number };
   private _insecureContextWarned: boolean = false;
 
@@ -223,6 +224,9 @@ export class WindyCard extends LitElement implements LovelaceCard {
     if (Array.isArray(loop) && loop.length > 1) {
       const delay = (this._config?.overlay_loop_delay ?? 30) * 1000;
       this._loopTimer = setInterval(() => {
+        // Each step is a full Windy reload; a background tab or minimised window would take
+        // ~120 of them an hour for nobody to see.
+        if (document.hidden) return;
         this._loopIndex = (this._loopIndex + 1) % loop.length;
       }, delay);
     }
@@ -266,6 +270,10 @@ export class WindyCard extends LitElement implements LovelaceCard {
           }, remaining);
         }
       }
+    } else if (this._throttleTimer) {
+      // Back where the map already is: the deferred move is stale.
+      clearTimeout(this._throttleTimer);
+      this._throttleTimer = undefined;
     }
   }
 
@@ -423,7 +431,12 @@ export class WindyCard extends LitElement implements LovelaceCard {
         // A tracker reports a new fix every few metres, and each distinct value would build
         // a new iframe URL and reload Windy. Three decimals (about 100 m) are far finer than
         // any map zoom this card allows, so rounding keeps the frame still while moving.
-        return { lat: Math.round(lat * 1000) / 1000, lon: Math.round(lon * 1000) / 1000 };
+        // Rounding alone flips on every fix when a parked phone sits near x.xxx5, so the
+        // centre only moves once the fix is about 200 m away from it.
+        const last = this._trackerCentre;
+        if (last && Math.abs(lat - last.lat) < 0.002 && Math.abs(lon - last.lon) < 0.002) return last;
+        this._trackerCentre = { lat: Math.round(lat * 1000) / 1000, lon: Math.round(lon * 1000) / 1000 };
+        return this._trackerCentre;
       }
     }
 
@@ -581,14 +594,15 @@ export class WindyCard extends LitElement implements LovelaceCard {
     }
   }
 
-  /** Forces an iframe to reload its current source. */
+  /**
+   * Forces an iframe to reload its current source. Setting `src` to the same value navigates
+   * again; a detour through about:blank would let Lit render in between and record the blank
+   * page as the frame's source, so the next update re-armed the stall clock on a healthy frame.
+   */
   private _reloadFrame(iframe: HTMLIFrameElement): void {
     const currentSrc = iframe.getAttribute('src');
-    if (currentSrc && currentSrc !== 'about:blank') {
-      iframe.src = 'about:blank';
-      setTimeout(() => {
-        iframe.src = currentSrc;
-      }, 10);
+    if (currentSrc) {
+      iframe.src = currentSrc;
       this._watchFrame(iframe);
     }
   }
@@ -617,8 +631,8 @@ export class WindyCard extends LitElement implements LovelaceCard {
   }
 
   /**
-   * `load` fires for the about:blank reset too, and Chrome also fires it for its own error page
-   * when a blocker refuses the request, so a `load` alone is not proof that Windy answered. The
+   * Chrome fires `load` for its own error page too when a blocker refuses the request, so a
+   * `load` alone is not proof that Windy answered. The
    * frame is cross-origin and Windy sends no postMessage, so the card confirms with a no-cors
    * request to the same URL (without the query): it resolves (opaque) only when the request
    * reached the network and rejects when it is blocked or offline. The stall clock keeps running
@@ -627,7 +641,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
   private _handleFrameLoad = (e: Event): void => {
     const iframe = e.currentTarget as HTMLIFrameElement;
     const src = iframe.getAttribute('src') ?? '';
-    if (!src || src === 'about:blank') return;
+    if (!src) return;
     if (navigator.onLine === false) {
       this._clearFrameTimer(iframe);
       this._stalled = true;
@@ -685,7 +699,12 @@ export class WindyCard extends LitElement implements LovelaceCard {
   /** Registers frames whose src Lit just set or changed with the stall clock. */
   protected updated(changedProperties: Map<string | number | symbol, unknown>): void {
     super.updated(changedProperties);
-    for (const iframe of this._frames) {
+    const frames = this._frames;
+    // A frame Lit removed (e.g. on a tab switch) must not keep its clock, or it flags the card later.
+    for (const iframe of [...this._frameTimers.keys()]) {
+      if (!frames.includes(iframe)) this._clearFrameTimer(iframe);
+    }
+    for (const iframe of frames) {
       const src = iframe.getAttribute('src') ?? '';
       if (this._frameSrc.get(iframe) !== src) {
         this._frameSrc.set(iframe, src);

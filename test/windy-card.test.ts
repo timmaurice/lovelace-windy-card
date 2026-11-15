@@ -439,6 +439,26 @@ describe('WindyCard', () => {
       expect(urlFor(51.9513, 7.9855)).not.toBe(a);
     });
 
+    it('keeps a parked tracker still when its fix jitters across a rounding boundary', () => {
+      const card = new WindyCard();
+      const fix = (latitude: number) => {
+        card.hass = {
+          ...mockHass,
+          states: { 'device_tracker.phone': { attributes: { latitude, longitude: 8 } } },
+        } as unknown as typeof card.hass;
+        (card as unknown as { performUpdate: () => void }).performUpdate();
+        return getIframeSrc(card);
+      };
+      card.setConfig({ type: 'custom:windy-card', overlay: 'wind', location: 'device_tracker.phone' });
+      card.connectedCallback();
+      const parked = fix(52.00049);
+      // 2 m of jitter around 52.0005 would otherwise flip the rounded centre and reload Windy.
+      expect(fix(52.00051)).toBe(parked);
+      expect(fix(52.00049)).toBe(parked);
+      expect(fix(52.003)).toContain('lat=52.003');
+      card.disconnectedCallback();
+    });
+
     it('falls back to lat/lon when zone entity is missing from states', () => {
       const card = makeCard({ overlay: 'wind', location: 'zone.nonexistent', latitude: 51.0, longitude: 7.0 });
       const src = getIframeSrc(card);
@@ -774,7 +794,8 @@ describe('WindyCard', () => {
       const iframe = document.createElement('iframe');
       iframe.setAttribute('src', 'https://embed.windy.com/embed.html');
       vi.spyOn(internals(card), '_frames', 'get').mockReturnValue([iframe]);
-      return { card, iframe };
+      const reload = vi.spyOn(iframe, 'src', 'set');
+      return { card, iframe, reload };
     }
 
     function setOnline(value: boolean) {
@@ -816,16 +837,6 @@ describe('WindyCard', () => {
       expect(internals(card)._stalled).toBe(false);
     });
 
-    it('ignores the about:blank load of a reset', () => {
-      vi.useFakeTimers();
-      const { card, iframe } = mounted();
-      internals(card)._watchFrame(iframe);
-      iframe.setAttribute('src', 'about:blank');
-      internals(card)._handleFrameLoad({ currentTarget: iframe } as unknown as Event);
-      vi.advanceTimersByTime(16000);
-      expect(internals(card)._stalled).toBe(true);
-    });
-
     it('treats a load while offline as stalled', () => {
       setOnline(false);
       const { card, iframe } = mounted();
@@ -836,34 +847,32 @@ describe('WindyCard', () => {
     it('reloads a stalled frame when the browser comes back online', () => {
       vi.useFakeTimers();
       setOnline(true);
-      const { card, iframe } = mounted();
+      const { card, reload } = mounted();
       internals(card)._stalled = true;
       internals(card)._handleReconnect();
       expect(internals(card)._stalled).toBe(false);
-      expect(iframe.getAttribute('src')).toBe('about:blank');
-      vi.advanceTimersByTime(20);
-      expect(iframe.getAttribute('src')).toBe('https://embed.windy.com/embed.html');
+      expect(reload).toHaveBeenCalledExactlyOnceWith('https://embed.windy.com/embed.html');
     });
 
     it('does not auto-reload a healthy card, offline, or in a tight loop', () => {
       vi.useFakeTimers();
-      const { card, iframe } = mounted();
+      const { card, reload } = mounted();
 
       setOnline(true);
       internals(card)._handleReconnect();
-      expect(iframe.getAttribute('src')).toContain('windy.com');
+      expect(reload).not.toHaveBeenCalled();
 
       internals(card)._stalled = true;
       setOnline(false);
       internals(card)._handleReconnect();
-      expect(iframe.getAttribute('src')).toContain('windy.com');
+      expect(reload).not.toHaveBeenCalled();
 
       setOnline(true);
       internals(card)._handleReconnect();
-      vi.advanceTimersByTime(20);
+      expect(reload).toHaveBeenCalledTimes(1);
       internals(card)._stalled = true;
       internals(card)._handleReconnect();
-      expect(iframe.getAttribute('src')).toContain('windy.com');
+      expect(reload).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -871,8 +880,8 @@ describe('WindyCard', () => {
     type Internals = { _stalled: boolean; _frameTimers: Map<HTMLIFrameElement, unknown> };
     const internals = (card: WindyCard) => card as unknown as Internals;
 
-    async function attach() {
-      const card = makeCard({});
+    async function attach(config: Partial<WindyCardConfig> = {}) {
+      const card = makeCard(config);
       document.body.appendChild(card);
       await card.updateComplete;
       const iframe = card.shadowRoot!.querySelector('iframe') as HTMLIFrameElement;
@@ -916,7 +925,7 @@ describe('WindyCard', () => {
       document.body.appendChild(card);
       await card.updateComplete;
 
-      vi.advanceTimersByTime(60000);
+      vi.advanceTimersByTime(50000);
       expect(internals(card)._stalled).toBe(false);
     });
 
@@ -945,6 +954,43 @@ describe('WindyCard', () => {
 
       iframe.dispatchEvent(new Event('load'));
       await vi.advanceTimersByTimeAsync(0);
+      expect(internals(card)._stalled).toBe(false);
+    });
+
+    // Retry used to detour through about:blank. Lit rendered in between, recorded the blank page as
+    // the frame's src, and the next hass update re-armed the clock on a frame that had loaded fine.
+    it('does not flag a frame again after a successful retry and a hass update', async () => {
+      vi.useFakeTimers();
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ type: 'opaque' }));
+      const { card, iframe } = await attach();
+      internals(card)._stalled = true;
+      await card.updateComplete;
+
+      (card.shadowRoot!.querySelector('.frame-retry') as HTMLButtonElement).click();
+      await card.updateComplete;
+      iframe.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(internals(card)._stalled).toBe(false);
+
+      card.hass = { ...mockHass } as unknown as typeof card.hass;
+      await card.updateComplete;
+      await vi.advanceTimersByTimeAsync(16000);
+      expect(internals(card)._stalled).toBe(false);
+    });
+
+    // With aspect_ratio the map and the forecast use different templates, so a tab switch removes the
+    // map iframe. Its clock used to keep running and flagged the healthy forecast 15 s later.
+    it('drops the clock of a frame removed by a tab switch', async () => {
+      vi.useFakeTimers();
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ type: 'opaque' }));
+      const { card } = await attach({ aspect_ratio: '16:9' });
+      (card as unknown as { _mode: string })._mode = 'forecast';
+      await card.updateComplete;
+
+      const forecast = card.shadowRoot!.querySelector('iframe') as HTMLIFrameElement;
+      expect(forecast.getAttribute('src')).toContain('type=forecast');
+      forecast.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(16000);
       expect(internals(card)._stalled).toBe(false);
     });
 
@@ -1489,6 +1535,28 @@ describe('WindyCard', () => {
       vi.useRealTimers();
     });
 
+    it('drops a deferred move when the tracker returns before it fires', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ update_interval: 5, location: 'zone.home' });
+      const hassAt = (latitude: number) =>
+        ({
+          ...mockHass,
+          states: { 'zone.home': { attributes: { latitude, longitude: 9.0 } } },
+        }) as unknown as typeof card.hass;
+      const performUpdate = () => (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      card.hass = hassAt(53.0);
+      performUpdate();
+      card.hass = hassAt(54.0);
+      performUpdate();
+      card.hass = hassAt(53.0);
+      performUpdate();
+      vi.advanceTimersByTime(5000);
+
+      expect(getIframeSrc(card)).toContain('lat=53');
+      vi.useRealTimers();
+    });
+
     it('bypasses throttle on config change', () => {
       vi.useFakeTimers();
       const card = makeCard({ update_interval: 5, latitude: 48.0, longitude: 11.0 });
@@ -1603,6 +1671,28 @@ describe('WindyCard', () => {
       expect(src).toContain('overlay=wind');
 
       card.disconnectedCallback();
+      vi.useRealTimers();
+    });
+
+    it('does not cycle the overlay loop while the page is hidden', () => {
+      vi.useFakeTimers();
+      const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+      const card = makeCard({ overlay_loop: ['wind', 'rain'], overlay_loop_delay: 10 });
+      card.connectedCallback();
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      // Every step is a full Windy reload, so a background tab must not take any.
+      vi.advanceTimersByTime(50000);
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+      expect(getIframeSrc(card)).toContain('overlay=wind');
+
+      hidden.mockReturnValue(false);
+      vi.advanceTimersByTime(10000);
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+
+      card.disconnectedCallback();
+      hidden.mockRestore();
       vi.useRealTimers();
     });
 

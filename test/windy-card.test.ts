@@ -860,8 +860,8 @@ describe('WindyCard', () => {
     type Internals = { _stalled: boolean; _frameTimers: Map<HTMLIFrameElement, unknown> };
     const internals = (card: WindyCard) => card as unknown as Internals;
 
-    async function attach() {
-      const card = makeCard({});
+    async function attach(config: Partial<WindyCardConfig> = {}) {
+      const card = makeCard(config);
       document.body.appendChild(card);
       await card.updateComplete;
       const iframe = card.shadowRoot!.querySelector('iframe') as HTMLIFrameElement;
@@ -954,6 +954,22 @@ describe('WindyCard', () => {
 
       card.hass = { ...mockHass } as unknown as typeof card.hass;
       await card.updateComplete;
+      await vi.advanceTimersByTimeAsync(16000);
+      expect(internals(card)._stalled).toBe(false);
+    });
+
+    // With aspect_ratio the map and the forecast use different templates, so a tab switch removes the
+    // map iframe. Its clock used to keep running and flagged the healthy forecast 15 s later.
+    it('drops the clock of a frame removed by a tab switch', async () => {
+      vi.useFakeTimers();
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ type: 'opaque' }));
+      const { card } = await attach({ aspect_ratio: '16:9' });
+      (card as unknown as { _mode: string })._mode = 'forecast';
+      await card.updateComplete;
+
+      const forecast = card.shadowRoot!.querySelector('iframe') as HTMLIFrameElement;
+      expect(forecast.getAttribute('src')).toContain('type=forecast');
+      forecast.dispatchEvent(new Event('load'));
       await vi.advanceTimersByTimeAsync(16000);
       expect(internals(card)._stalled).toBe(false);
     });

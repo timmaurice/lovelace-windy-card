@@ -686,7 +686,12 @@ export class WindyCard extends LitElement implements LovelaceCard {
   /** Registers frames whose src Lit just set or changed with the stall clock. */
   protected updated(changedProperties: Map<string | number | symbol, unknown>): void {
     super.updated(changedProperties);
-    for (const iframe of this._frames) {
+    const frames = this._frames;
+    // A frame Lit removed (e.g. on a tab switch) must not keep its clock, or it flags the card later.
+    for (const iframe of [...this._frameTimers.keys()]) {
+      if (!frames.includes(iframe)) this._clearFrameTimer(iframe);
+    }
+    for (const iframe of frames) {
       const src = iframe.getAttribute('src') ?? '';
       if (this._frameSrc.get(iframe) !== src) {
         this._frameSrc.set(iframe, src);

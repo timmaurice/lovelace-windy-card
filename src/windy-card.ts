@@ -223,6 +223,9 @@ export class WindyCard extends LitElement implements LovelaceCard {
     if (Array.isArray(loop) && loop.length > 1) {
       const delay = (this._config?.overlay_loop_delay ?? 30) * 1000;
       this._loopTimer = setInterval(() => {
+        // Each step is a full Windy reload; a background tab or minimised window would take
+        // ~120 of them an hour for nobody to see.
+        if (document.hidden) return;
         this._loopIndex = (this._loopIndex + 1) % loop.length;
       }, delay);
     }

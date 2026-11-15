@@ -905,7 +905,7 @@ describe('WindyCard', () => {
       document.body.appendChild(card);
       await card.updateComplete;
 
-      vi.advanceTimersByTime(60000);
+      vi.advanceTimersByTime(50000);
       expect(internals(card)._stalled).toBe(false);
     });
 
@@ -1651,6 +1651,28 @@ describe('WindyCard', () => {
       expect(src).toContain('overlay=wind');
 
       card.disconnectedCallback();
+      vi.useRealTimers();
+    });
+
+    it('does not cycle the overlay loop while the page is hidden', () => {
+      vi.useFakeTimers();
+      const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+      const card = makeCard({ overlay_loop: ['wind', 'rain'], overlay_loop_delay: 10 });
+      card.connectedCallback();
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+
+      // Every step is a full Windy reload, so a background tab must not take any.
+      vi.advanceTimersByTime(50000);
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+      expect(getIframeSrc(card)).toContain('overlay=wind');
+
+      hidden.mockReturnValue(false);
+      vi.advanceTimersByTime(10000);
+      (card as unknown as { performUpdate: () => void }).performUpdate();
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+
+      card.disconnectedCallback();
+      hidden.mockRestore();
       vi.useRealTimers();
     });
 

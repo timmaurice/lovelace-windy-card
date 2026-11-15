@@ -581,14 +581,15 @@ export class WindyCard extends LitElement implements LovelaceCard {
     }
   }
 
-  /** Forces an iframe to reload its current source. */
+  /**
+   * Forces an iframe to reload its current source. Setting `src` to the same value navigates
+   * again; a detour through about:blank would let Lit render in between and record the blank
+   * page as the frame's source, so the next update re-armed the stall clock on a healthy frame.
+   */
   private _reloadFrame(iframe: HTMLIFrameElement): void {
     const currentSrc = iframe.getAttribute('src');
-    if (currentSrc && currentSrc !== 'about:blank') {
-      iframe.src = 'about:blank';
-      setTimeout(() => {
-        iframe.src = currentSrc;
-      }, 10);
+    if (currentSrc) {
+      iframe.src = currentSrc;
       this._watchFrame(iframe);
     }
   }
@@ -617,8 +618,8 @@ export class WindyCard extends LitElement implements LovelaceCard {
   }
 
   /**
-   * `load` fires for the about:blank reset too, and Chrome also fires it for its own error page
-   * when a blocker refuses the request, so a `load` alone is not proof that Windy answered. The
+   * Chrome fires `load` for its own error page too when a blocker refuses the request, so a
+   * `load` alone is not proof that Windy answered. The
    * frame is cross-origin and Windy sends no postMessage, so the card confirms with a no-cors
    * request to the same URL (without the query): it resolves (opaque) only when the request
    * reached the network and rejects when it is blocked or offline. The stall clock keeps running
@@ -627,7 +628,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
   private _handleFrameLoad = (e: Event): void => {
     const iframe = e.currentTarget as HTMLIFrameElement;
     const src = iframe.getAttribute('src') ?? '';
-    if (!src || src === 'about:blank') return;
+    if (!src) return;
     if (navigator.onLine === false) {
       this._clearFrameTimer(iframe);
       this._stalled = true;

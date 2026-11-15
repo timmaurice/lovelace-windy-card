@@ -774,7 +774,8 @@ describe('WindyCard', () => {
       const iframe = document.createElement('iframe');
       iframe.setAttribute('src', 'https://embed.windy.com/embed.html');
       vi.spyOn(internals(card), '_frames', 'get').mockReturnValue([iframe]);
-      return { card, iframe };
+      const reload = vi.spyOn(iframe, 'src', 'set');
+      return { card, iframe, reload };
     }
 
     function setOnline(value: boolean) {
@@ -816,16 +817,6 @@ describe('WindyCard', () => {
       expect(internals(card)._stalled).toBe(false);
     });
 
-    it('ignores the about:blank load of a reset', () => {
-      vi.useFakeTimers();
-      const { card, iframe } = mounted();
-      internals(card)._watchFrame(iframe);
-      iframe.setAttribute('src', 'about:blank');
-      internals(card)._handleFrameLoad({ currentTarget: iframe } as unknown as Event);
-      vi.advanceTimersByTime(16000);
-      expect(internals(card)._stalled).toBe(true);
-    });
-
     it('treats a load while offline as stalled', () => {
       setOnline(false);
       const { card, iframe } = mounted();
@@ -836,34 +827,32 @@ describe('WindyCard', () => {
     it('reloads a stalled frame when the browser comes back online', () => {
       vi.useFakeTimers();
       setOnline(true);
-      const { card, iframe } = mounted();
+      const { card, reload } = mounted();
       internals(card)._stalled = true;
       internals(card)._handleReconnect();
       expect(internals(card)._stalled).toBe(false);
-      expect(iframe.getAttribute('src')).toBe('about:blank');
-      vi.advanceTimersByTime(20);
-      expect(iframe.getAttribute('src')).toBe('https://embed.windy.com/embed.html');
+      expect(reload).toHaveBeenCalledExactlyOnceWith('https://embed.windy.com/embed.html');
     });
 
     it('does not auto-reload a healthy card, offline, or in a tight loop', () => {
       vi.useFakeTimers();
-      const { card, iframe } = mounted();
+      const { card, reload } = mounted();
 
       setOnline(true);
       internals(card)._handleReconnect();
-      expect(iframe.getAttribute('src')).toContain('windy.com');
+      expect(reload).not.toHaveBeenCalled();
 
       internals(card)._stalled = true;
       setOnline(false);
       internals(card)._handleReconnect();
-      expect(iframe.getAttribute('src')).toContain('windy.com');
+      expect(reload).not.toHaveBeenCalled();
 
       setOnline(true);
       internals(card)._handleReconnect();
-      vi.advanceTimersByTime(20);
+      expect(reload).toHaveBeenCalledTimes(1);
       internals(card)._stalled = true;
       internals(card)._handleReconnect();
-      expect(iframe.getAttribute('src')).toContain('windy.com');
+      expect(reload).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -945,6 +934,27 @@ describe('WindyCard', () => {
 
       iframe.dispatchEvent(new Event('load'));
       await vi.advanceTimersByTimeAsync(0);
+      expect(internals(card)._stalled).toBe(false);
+    });
+
+    // Retry used to detour through about:blank. Lit rendered in between, recorded the blank page as
+    // the frame's src, and the next hass update re-armed the clock on a frame that had loaded fine.
+    it('does not flag a frame again after a successful retry and a hass update', async () => {
+      vi.useFakeTimers();
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ type: 'opaque' }));
+      const { card, iframe } = await attach();
+      internals(card)._stalled = true;
+      await card.updateComplete;
+
+      (card.shadowRoot!.querySelector('.frame-retry') as HTMLButtonElement).click();
+      await card.updateComplete;
+      iframe.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(internals(card)._stalled).toBe(false);
+
+      card.hass = { ...mockHass } as unknown as typeof card.hass;
+      await card.updateComplete;
+      await vi.advanceTimersByTimeAsync(16000);
       expect(internals(card)._stalled).toBe(false);
     });
 

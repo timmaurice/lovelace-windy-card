@@ -5,13 +5,14 @@ const DUPLICATE_MARKER = 'e2e-duplicate';
 
 test.describe('Lovelace resource registration', () => {
   test('has exactly one resource for the card bundle', async () => {
-    // This repository ships no integration, so the resource is declared by hand
-    // in ha-config/configuration.yaml. Two of them load the bundle twice, and
-    // the second customElements.define() throws.
+    // This repository ships no integration, so global setup registers the
+    // resource. Two of them load the bundle twice, and the second
+    // customElements.define() throws.
     const ours = (await resources()).filter((resource) => resource.url.split('?')[0].endsWith(`/${BUNDLE_NAME}`));
 
     expect(ours).toHaveLength(1);
-    expect(ours[0].url).toBe(BUNDLE_URL);
+    // The build's hash in the query keeps browsers from running a cached bundle.
+    expect(ours[0].url).toMatch(new RegExp(`^${BUNDLE_URL}\\?v=[0-9a-f]{8}$`));
   });
 
   test('serves the bundle and defines card and editor without a clash', async ({ page, consoleErrors }) => {
@@ -43,12 +44,11 @@ test.describe('Lovelace resource registration', () => {
     // windy-card has already been used", so the module never finished and the
     // user lost the whole card rather than seeing an error.
     //
-    // The second registration has to be made in the browser rather than through
-    // `lovelace/resources/create`: ha-config runs with `resource_mode: yaml`,
-    // so the resource collection is read-only and Home Assistant answers that
-    // command with `unknown_command`. Appending a module script for the bundle
-    // is byte for byte what the frontend's resource loader does for a `module`
-    // resource, so the browser sees exactly the duplicate-resource situation.
+    // The second registration is made in the browser rather than through
+    // `lovelace/resources/create`, so the suite leaves the stored resources as
+    // it found them. Appending a module script for the bundle is byte for byte
+    // what the frontend's resource loader does for a `module` resource, so the
+    // browser sees exactly the duplicate-resource situation.
     const urlPath = await useDashboard('resources-duplicate', { views: [{ title: 'Empty', cards: [] }] });
 
     await page.goto(`/${urlPath}/0`);

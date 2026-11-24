@@ -9,7 +9,6 @@ input_boolean:
     icon: mdi:play-circle
 
 lovelace:
-  resource_mode: yaml
   dashboards:
     lovelace:
       mode: yaml
@@ -17,7 +16,3 @@ lovelace:
       title: Windy
       icon: mdi:weather-windy
       show_in_sidebar: true
-
-  resources:
-    - url: /local/windy-card.js
-      type: module

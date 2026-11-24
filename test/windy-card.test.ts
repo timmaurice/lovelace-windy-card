@@ -1744,6 +1744,90 @@ describe('WindyCard', () => {
     });
   });
 
+  describe('Overlay loop pause/play', () => {
+    function renderMap(card: WindyCard): HTMLElement {
+      const container = document.createElement('div');
+      // host binds `this` in @click handlers, as the card's own shadow root does.
+      render((card as unknown as { _renderMap: () => unknown })._renderMap(), container, { host: card });
+      return container;
+    }
+    const update = (card: WindyCard) => (card as unknown as { performUpdate: () => void }).performUpdate();
+
+    it('only offers the button on the map while a loop of two or more layers runs', () => {
+      expect(renderMap(makeCard({})).querySelector('.loop-toggle-button')).toBeNull();
+      expect(renderMap(makeCard({ overlay_loop: ['wind'] })).querySelector('.loop-toggle-button')).toBeNull();
+      expect(
+        renderMap(makeCard({ overlay_loop: ['wind', 'rain'] })).querySelector('.loop-toggle-button'),
+      ).not.toBeNull();
+
+      const card = makeCard({ overlay_loop: ['wind', 'rain'] });
+      const forecast = document.createElement('div');
+      render((card as unknown as { _renderForecast: () => unknown })._renderForecast(), forecast);
+      expect(forecast.querySelector('.loop-toggle-button')).toBeNull();
+    });
+
+    it('labels the button with what it will do and says whether the loop is paused', () => {
+      const card = makeCard({ overlay_loop: ['wind', 'rain'] });
+      card.hass = { ...mockHass, language: 'de' } as unknown as typeof card.hass;
+
+      let button = renderMap(card).querySelector('.loop-toggle-button');
+      expect(button?.tagName).toBe('BUTTON');
+      expect(button?.getAttribute('aria-label')).toBe('Ebenen-Schleife pausieren');
+      expect(button?.getAttribute('aria-pressed')).toBe('false');
+      expect(button?.querySelector('ha-icon')?.getAttribute('icon')).toBe('mdi:pause');
+
+      (card as unknown as { _loopPaused: boolean })._loopPaused = true;
+      button = renderMap(card).querySelector('.loop-toggle-button');
+      expect(button?.getAttribute('aria-label')).toBe('Ebenen-Schleife abspielen');
+      expect(button?.getAttribute('aria-pressed')).toBe('true');
+      expect(button?.querySelector('ha-icon')?.getAttribute('icon')).toBe('mdi:play');
+    });
+
+    it('holds the current layer while paused and gives it a full delay again on play', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ overlay_loop: ['wind', 'rain', 'temp'], overlay_loop_delay: 10 });
+      card.connectedCallback();
+      update(card);
+
+      vi.advanceTimersByTime(10000);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+
+      renderMap(card).querySelector<HTMLButtonElement>('.loop-toggle-button')?.click();
+      vi.advanceTimersByTime(60000);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+
+      // A reconnect (view change) must not restart a loop the user paused.
+      card.disconnectedCallback();
+      card.connectedCallback();
+      vi.advanceTimersByTime(60000);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+
+      renderMap(card).querySelector<HTMLButtonElement>('.loop-toggle-button')?.click();
+      vi.advanceTimersByTime(9999);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+      vi.advanceTimersByTime(1);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=temp');
+
+      card.disconnectedCallback();
+      vi.useRealTimers();
+    });
+
+    it('plays again when the loop itself is reconfigured', () => {
+      const card = makeCard({ overlay_loop: ['wind', 'rain'] });
+      update(card);
+      (card as unknown as { _loopPaused: boolean })._loopPaused = true;
+
+      card.setConfig({ type: 'custom:windy-card', overlay_loop: ['temp', 'clouds'] });
+      update(card);
+      expect((card as unknown as { _loopPaused: boolean })._loopPaused).toBe(false);
+    });
+  });
+
   describe('Duplicate resource registration', () => {
     it('should not throw when the bundle is evaluated a second time', async () => {
       vi.resetModules();

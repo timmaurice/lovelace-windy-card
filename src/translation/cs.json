@@ -10,6 +10,8 @@
     "disable_interaction": "Zakázat ovládání",
     "fullscreen": "Celá obrazovka",
     "exit_fullscreen": "Ukončit celou obrazovku",
+    "pause_loop": "Pozastavit smyčku vrstev",
+    "play_loop": "Přehrát smyčku vrstev",
     "frame_stalled": "Windy neodpovídá. Může být blokováno nebo jste offline.",
     "retry": "Zkusit znovu",
     "map_frame": "Mapa Windy",

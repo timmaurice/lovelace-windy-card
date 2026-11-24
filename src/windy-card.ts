@@ -60,6 +60,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
   @state() private _forecastUrl: string = '';
 
   @state() private _loopIndex: number = 0;
+  @state() private _loopPaused: boolean = false;
 
   private _lastUpdateTime: number = 0;
   private _throttleTimer?: ReturnType<typeof setTimeout>;
@@ -198,6 +199,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
       if (!isLoopEqual) {
         this._lastLoopParams = { overlays: [...newLoop], delay: newDelay };
         this._loopIndex = 0;
+        this._loopPaused = false;
         this._setupLoopTimer();
       }
     }
@@ -221,7 +223,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
     }
 
     const loop = this._config?.overlay_loop;
-    if (Array.isArray(loop) && loop.length > 1) {
+    if (Array.isArray(loop) && loop.length > 1 && !this._loopPaused) {
       const delay = (this._config?.overlay_loop_delay ?? 30) * 1000;
       this._loopTimer = setInterval(() => {
         // Each step is a full Windy reload; a background tab or minimised window would take
@@ -716,6 +718,19 @@ export class WindyCard extends LitElement implements LovelaceCard {
     }
   }
 
+  /** A loop of one layer never advances, so there is nothing to pause. */
+  private get _hasLoop(): boolean {
+    const loop = this._config?.overlay_loop;
+    return Array.isArray(loop) && loop.length > 1;
+  }
+
+  /** Pausing holds the current layer; playing restarts the timer, so it gets a full delay again. */
+  private _toggleLoop(e: Event) {
+    e.preventDefault();
+    this._loopPaused = !this._loopPaused;
+    this._setupLoopTimer();
+  }
+
   private _toggleStatic(e: Event) {
     e.preventDefault();
     this._isStatic = !this._isStatic;
@@ -861,6 +876,22 @@ export class WindyCard extends LitElement implements LovelaceCard {
         </button>`
       : '';
 
+    const loopLabel = this._loopPaused
+      ? (localize(this.hass, 'component.windy-card.card.play_loop') ?? 'Play layer loop')
+      : (localize(this.hass, 'component.windy-card.card.pause_loop') ?? 'Pause layer loop');
+    const loopButton =
+      respectStaticLock && this._hasLoop
+        ? html`<button
+            class="action-button loop-toggle-button ${this._loopPaused ? 'is-active' : ''}"
+            @click=${this._toggleLoop}
+            title="${loopLabel}"
+            aria-label="${loopLabel}"
+            aria-pressed="${this._loopPaused}"
+          >
+            <ha-icon icon="${this._loopPaused ? 'mdi:play' : 'mdi:pause'}" aria-hidden="true"></ha-icon>
+          </button>`
+        : '';
+
     const fullscreenLabel = this._isFullscreen
       ? (localize(this.hass, 'component.windy-card.card.exit_fullscreen') ?? 'Exit full screen')
       : (localize(this.hass, 'component.windy-card.card.fullscreen') ?? 'Full screen');
@@ -918,7 +949,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
             sandbox="${IFRAME_SANDBOX}"
             @load=${this._handleFrameLoad}
           ></iframe>
-          <div class="action-buttons">${resetButton} ${toggleStaticButton} ${fullscreenButton}</div>
+          <div class="action-buttons">${resetButton} ${loopButton} ${toggleStaticButton} ${fullscreenButton}</div>
           ${stalledNotice}
         </div>
       `;
@@ -944,7 +975,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
               : `border: none; display: block; ${pointerEvents}`
           }"
         ></iframe>
-        <div class="action-buttons">${resetButton} ${toggleStaticButton} ${fullscreenButton}</div>
+        <div class="action-buttons">${resetButton} ${loopButton} ${toggleStaticButton} ${fullscreenButton}</div>
         ${stalledNotice}
       </div>
     `;

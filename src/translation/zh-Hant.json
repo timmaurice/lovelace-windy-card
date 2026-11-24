@@ -10,6 +10,8 @@
     "disable_interaction": "禁用互動",
     "fullscreen": "全螢幕",
     "exit_fullscreen": "結束全螢幕",
+    "pause_loop": "暫停圖層循環",
+    "play_loop": "播放圖層循環",
     "frame_stalled": "Windy 沒有回應。可能被封鎖，或者你處於離線狀態。",
     "retry": "重試",
     "map_frame": "Windy 地圖",

@@ -378,6 +378,8 @@ overlay_loop_delay: 15
 zoom: 6
 ```
 
+While a loop of two or more layers runs, the map toolbar shows a pause button (<kbd>⏸</kbd>). Pausing holds the layer currently on screen; press play (<kbd>▶</kbd>) to resume, and the held layer gets its full `overlay_loop_delay` before the next one. The button works from the keyboard (<kbd>Enter</kbd> or <kbd>Space</kbd>). The pause is not saved: reloading the dashboard or changing `overlay_loop` starts the loop again.
+
 ## Development
 
 <details>

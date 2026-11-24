@@ -10,6 +10,8 @@
     "disable_interaction": "Désactiver l'interaction",
     "fullscreen": "Plein écran",
     "exit_fullscreen": "Quitter le plein écran",
+    "pause_loop": "Mettre en pause la boucle des calques",
+    "play_loop": "Lire la boucle des calques",
     "frame_stalled": "Windy ne répond pas. Il est peut-être bloqué ou vous êtes hors ligne.",
     "retry": "Réessayer",
     "map_frame": "Carte Windy",

@@ -1394,6 +1394,19 @@ describe('WindyCard', () => {
       expect(findSubTemplate(renderMap(card), 'fullscreen-button')?.values).toContain('mdi:fullscreen-exit');
     });
 
+    it('highlights the button while fullscreen, like the other toggles', () => {
+      const card = makeCard({ overlay: 'wind' });
+      const button = () => {
+        const container = document.createElement('div');
+        render(renderMap(card), container);
+        return container.querySelector('.fullscreen-button');
+      };
+      expect(button()?.classList.contains('is-active')).toBe(false);
+
+      (card as unknown as { _isFullscreen: boolean })._isFullscreen = true;
+      expect(button()?.classList.contains('is-active')).toBe(true);
+    });
+
     it('pins the map container to the viewport while fullscreen', () => {
       const card = makeCard({ overlay: 'wind', aspect_ratio: '16:9' });
       expect(renderMap(card).values.some((v) => typeof v === 'string' && v.includes('position: fixed'))).toBe(false);
@@ -1741,6 +1754,92 @@ describe('WindyCard', () => {
 
       card.disconnectedCallback();
       vi.useRealTimers();
+    });
+  });
+
+  describe('Overlay loop stop/start', () => {
+    function renderMap(card: WindyCard): HTMLElement {
+      const container = document.createElement('div');
+      // host binds `this` in @click handlers, as the card's own shadow root does.
+      render((card as unknown as { _renderMap: () => unknown })._renderMap(), container, { host: card });
+      return container;
+    }
+    const update = (card: WindyCard) => (card as unknown as { performUpdate: () => void }).performUpdate();
+
+    it('only offers the button on the map while a loop of two or more layers runs', () => {
+      expect(renderMap(makeCard({})).querySelector('.loop-toggle-button')).toBeNull();
+      expect(renderMap(makeCard({ overlay_loop: ['wind'] })).querySelector('.loop-toggle-button')).toBeNull();
+      expect(
+        renderMap(makeCard({ overlay_loop: ['wind', 'rain'] })).querySelector('.loop-toggle-button'),
+      ).not.toBeNull();
+
+      const card = makeCard({ overlay_loop: ['wind', 'rain'] });
+      const forecast = document.createElement('div');
+      render((card as unknown as { _renderForecast: () => unknown })._renderForecast(), forecast);
+      expect(forecast.querySelector('.loop-toggle-button')).toBeNull();
+    });
+
+    it('labels the button with what it will do and shows whether the loop runs', () => {
+      const card = makeCard({ overlay_loop: ['wind', 'rain'] });
+      card.hass = { ...mockHass, language: 'de' } as unknown as typeof card.hass;
+
+      let button = renderMap(card).querySelector('.loop-toggle-button');
+      expect(button?.tagName).toBe('BUTTON');
+      expect(button?.getAttribute('aria-label')).toBe('Ebenen-Schleife stoppen');
+      expect(button?.getAttribute('aria-pressed')).toBe('true');
+      expect(button?.classList.contains('is-active')).toBe(true);
+      expect(button?.querySelector('ha-icon')?.getAttribute('icon')).toBe('mdi:repeat');
+
+      (card as unknown as { _loopPaused: boolean })._loopPaused = true;
+      button = renderMap(card).querySelector('.loop-toggle-button');
+      expect(button?.getAttribute('aria-label')).toBe('Ebenen-Schleife starten');
+      expect(button?.getAttribute('aria-pressed')).toBe('false');
+      expect(button?.classList.contains('is-active')).toBe(false);
+      expect(button?.querySelector('ha-icon')?.getAttribute('icon')).toBe('mdi:repeat-off');
+    });
+
+    it('holds the current layer while stopped and gives it a full delay again on start', () => {
+      vi.useFakeTimers();
+      const card = makeCard({ overlay_loop: ['wind', 'rain', 'temp'], overlay_loop_delay: 10 });
+      card.connectedCallback();
+      update(card);
+
+      vi.advanceTimersByTime(10000);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+
+      renderMap(card).querySelector<HTMLButtonElement>('.loop-toggle-button')?.click();
+      vi.advanceTimersByTime(60000);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+
+      // A reconnect (view change) must not restart a loop the user stopped.
+      card.disconnectedCallback();
+      card.connectedCallback();
+      vi.advanceTimersByTime(60000);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+
+      renderMap(card).querySelector<HTMLButtonElement>('.loop-toggle-button')?.click();
+      vi.advanceTimersByTime(9999);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=rain');
+      vi.advanceTimersByTime(1);
+      update(card);
+      expect(getIframeSrc(card)).toContain('overlay=temp');
+
+      card.disconnectedCallback();
+      vi.useRealTimers();
+    });
+
+    it('starts again when the loop itself is reconfigured', () => {
+      const card = makeCard({ overlay_loop: ['wind', 'rain'] });
+      update(card);
+      (card as unknown as { _loopPaused: boolean })._loopPaused = true;
+
+      card.setConfig({ type: 'custom:windy-card', overlay_loop: ['temp', 'clouds'] });
+      update(card);
+      expect((card as unknown as { _loopPaused: boolean })._loopPaused).toBe(false);
     });
   });
 

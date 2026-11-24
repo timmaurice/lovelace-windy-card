@@ -31,6 +31,10 @@ test.beforeAll(async () => {
         title: 'Forecast only',
         cards: [{ ...common, title: 'Forecast only', default_mode: 'forecast_only' }],
       },
+      {
+        title: 'Loop',
+        cards: [{ ...common, title: 'Loop', overlay_loop: ['wind', 'rain'], overlay_loop_delay: 2 }],
+      },
     ],
   });
 });
@@ -109,6 +113,42 @@ test.describe('Single-panel modes', () => {
     await expect(card.locator('.iframe-container.ratio-wrapper')).toHaveCount(0);
     await expect(card.locator('.static-toggle-button')).toHaveCount(0);
     expect((await embedFrames(card).boundingBox())!.height).toBeGreaterThan(100);
+
+    expect(consoleErrors).toEqual([]);
+  });
+});
+
+test.describe('Overlay loop', () => {
+  test('stops and starts from the keyboard, holding the layer it stopped on', async ({ page, consoleErrors }) => {
+    await page.goto(`/${urlPath}/2`);
+
+    const card = page.locator('windy-card');
+    await expect(card.locator('ha-card')).toBeVisible({ timeout: 60_000 });
+    const overlay = async () => (await embed(embedFrames(card))).params.overlay;
+
+    // The loop runs on its own first, or pausing it proves nothing.
+    const first = await overlay();
+    await expect.poll(overlay, { timeout: 15_000 }).not.toBe(first);
+
+    const button = card.locator('.loop-toggle-button');
+    // Pressed means the loop runs: the button shows state, its label the action.
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(button.locator('ha-icon')).toHaveAttribute('icon', 'mdi:repeat');
+    const stopName = await button.getAttribute('aria-label');
+    expect(stopName?.trim()).toBeTruthy();
+
+    await button.press('Enter');
+    await expect(button).toHaveAttribute('aria-pressed', 'false');
+    await expect(button.locator('ha-icon')).toHaveAttribute('icon', 'mdi:repeat-off');
+    await expect(button).not.toHaveAttribute('aria-label', stopName!);
+    const held = await overlay();
+    // Three delays' worth: a running loop would have switched at least once.
+    await page.waitForTimeout(6_000);
+    expect(await overlay()).toBe(held);
+
+    await button.press('Space');
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(overlay, { timeout: 15_000 }).not.toBe(held);
 
     expect(consoleErrors).toEqual([]);
   });

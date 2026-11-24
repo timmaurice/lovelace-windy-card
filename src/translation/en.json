@@ -10,6 +10,8 @@
     "disable_interaction": "Disable interaction",
     "fullscreen": "Full screen",
     "exit_fullscreen": "Exit full screen",
+    "stop_loop": "Stop layer loop",
+    "start_loop": "Start layer loop",
     "frame_stalled": "Windy did not respond. It may be blocked or you may be offline.",
     "retry": "Retry",
     "map_frame": "Windy map",

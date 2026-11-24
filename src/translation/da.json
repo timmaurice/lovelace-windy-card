@@ -10,6 +10,8 @@
     "disable_interaction": "Deaktivér interaktion",
     "fullscreen": "Fuld skærm",
     "exit_fullscreen": "Afslut fuld skærm",
+    "stop_loop": "Stop lagsløjfen",
+    "start_loop": "Start lagsløjfen",
     "frame_stalled": "Windy svarer ikke. Det kan være blokeret, eller du er offline.",
     "retry": "Prøv igen",
     "map_frame": "Windy-kort",

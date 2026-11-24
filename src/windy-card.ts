@@ -901,7 +901,7 @@ export class WindyCard extends LitElement implements LovelaceCard {
     const fullscreenButton =
       allowFullscreen && this._fullscreenEnabled
         ? html`<button
-            class="action-button fullscreen-button"
+            class="action-button fullscreen-button ${this._isFullscreen ? 'is-active' : ''}"
             @click=${this._toggleFullscreen}
             title="${fullscreenLabel}"
             aria-label="${fullscreenLabel}"

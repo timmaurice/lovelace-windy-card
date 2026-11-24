@@ -1394,6 +1394,19 @@ describe('WindyCard', () => {
       expect(findSubTemplate(renderMap(card), 'fullscreen-button')?.values).toContain('mdi:fullscreen-exit');
     });
 
+    it('highlights the button while fullscreen, like the other toggles', () => {
+      const card = makeCard({ overlay: 'wind' });
+      const button = () => {
+        const container = document.createElement('div');
+        render(renderMap(card), container);
+        return container.querySelector('.fullscreen-button');
+      };
+      expect(button()?.classList.contains('is-active')).toBe(false);
+
+      (card as unknown as { _isFullscreen: boolean })._isFullscreen = true;
+      expect(button()?.classList.contains('is-active')).toBe(true);
+    });
+
     it('pins the map container to the viewport while fullscreen', () => {
       const card = makeCard({ overlay: 'wind', aspect_ratio: '16:9' });
       expect(renderMap(card).values.some((v) => typeof v === 'string' && v.includes('position: fixed'))).toBe(false);

@@ -415,6 +415,10 @@ While a loop of two or more layers is configured, the map toolbar shows a loop b
    npm run test:e2e
    ```
 
+   Setup registers the card as a Lovelace resource whose URL carries the bundle's hash
+   (`/local/windy-card.js?v=…`). Home Assistant lets browsers cache `/local` for a month, so a
+   rebuild only reaches an open browser once the suite has run again and updated that URL.
+
 </details>
 
 ---

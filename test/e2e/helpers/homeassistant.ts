@@ -4,12 +4,13 @@
  *
  * This repository ships no integration - the card is a plain Lovelace resource.
  * The compose file mounts `dist/` straight into the container's `/config/www`
- * and `ha-config/configuration.yaml` declares the resource, so the suite reuses
+ * and global setup registers it as a Lovelace resource, so the suite reuses
  * exactly the environment a developer clicks around in by hand. Everything it
  * writes goes into a dashboard of its own, so the `ui-lovelace.yaml` playground
  * stays intact.
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -278,6 +279,22 @@ export async function useDashboard(name: string, config: Record<string, unknown>
   }
   await callWebsocket({ type: 'lovelace/config/save', url_path: urlPath, config });
   return urlPath;
+}
+
+/**
+ * Registers the bundle as a Lovelace resource, or points the existing entry at the current build.
+ * Home Assistant serves /local with a month of browser cache, so the URL carries the bundle's
+ * hash: a new build is a new URL, and every open browser loads it on its next reload.
+ */
+export async function ensureBundleResource(): Promise<void> {
+  const hash = createHash('sha1').update(readFileSync(BUNDLE)).digest('hex').slice(0, 8);
+  const url = `${BUNDLE_URL}?v=${hash}`;
+  const pathOf = (value: string) => new URL(value, 'http://ha.invalid').pathname;
+  const existing = (await resources()).find((resource) => pathOf(resource.url) === BUNDLE_URL);
+  if (!existing) await callWebsocket({ type: 'lovelace/resources/create', res_type: 'module', url });
+  else if (existing.url !== url) {
+    await callWebsocket({ type: 'lovelace/resources/update', resource_id: existing.id, res_type: 'module', url });
+  }
 }
 
 /** The Lovelace resources Home Assistant has persisted. */

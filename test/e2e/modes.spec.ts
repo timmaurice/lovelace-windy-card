@@ -119,7 +119,7 @@ test.describe('Single-panel modes', () => {
 });
 
 test.describe('Overlay loop', () => {
-  test('pauses and plays from the keyboard, holding the layer it stopped on', async ({ page, consoleErrors }) => {
+  test('stops and starts from the keyboard, holding the layer it stopped on', async ({ page, consoleErrors }) => {
     await page.goto(`/${urlPath}/2`);
 
     const card = page.locator('windy-card');
@@ -131,20 +131,23 @@ test.describe('Overlay loop', () => {
     await expect.poll(overlay, { timeout: 15_000 }).not.toBe(first);
 
     const button = card.locator('.loop-toggle-button');
-    await expect(button).toHaveAttribute('aria-pressed', 'false');
-    const pauseName = await button.getAttribute('aria-label');
-    expect(pauseName?.trim()).toBeTruthy();
+    // Pressed means the loop runs: the button shows state, its label the action.
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(button.locator('ha-icon')).toHaveAttribute('icon', 'mdi:repeat');
+    const stopName = await button.getAttribute('aria-label');
+    expect(stopName?.trim()).toBeTruthy();
 
     await button.press('Enter');
-    await expect(button).toHaveAttribute('aria-pressed', 'true');
-    await expect(button).not.toHaveAttribute('aria-label', pauseName!);
+    await expect(button).toHaveAttribute('aria-pressed', 'false');
+    await expect(button.locator('ha-icon')).toHaveAttribute('icon', 'mdi:repeat-off');
+    await expect(button).not.toHaveAttribute('aria-label', stopName!);
     const held = await overlay();
     // Three delays' worth: a running loop would have switched at least once.
     await page.waitForTimeout(6_000);
     expect(await overlay()).toBe(held);
 
     await button.press('Space');
-    await expect(button).toHaveAttribute('aria-pressed', 'false');
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
     await expect.poll(overlay, { timeout: 15_000 }).not.toBe(held);
 
     expect(consoleErrors).toEqual([]);

@@ -1744,7 +1744,7 @@ describe('WindyCard', () => {
     });
   });
 
-  describe('Overlay loop pause/play', () => {
+  describe('Overlay loop stop/start', () => {
     function renderMap(card: WindyCard): HTMLElement {
       const container = document.createElement('div');
       // host binds `this` in @click handlers, as the card's own shadow root does.
@@ -1766,24 +1766,26 @@ describe('WindyCard', () => {
       expect(forecast.querySelector('.loop-toggle-button')).toBeNull();
     });
 
-    it('labels the button with what it will do and says whether the loop is paused', () => {
+    it('labels the button with what it will do and shows whether the loop runs', () => {
       const card = makeCard({ overlay_loop: ['wind', 'rain'] });
       card.hass = { ...mockHass, language: 'de' } as unknown as typeof card.hass;
 
       let button = renderMap(card).querySelector('.loop-toggle-button');
       expect(button?.tagName).toBe('BUTTON');
-      expect(button?.getAttribute('aria-label')).toBe('Ebenen-Schleife pausieren');
-      expect(button?.getAttribute('aria-pressed')).toBe('false');
-      expect(button?.querySelector('ha-icon')?.getAttribute('icon')).toBe('mdi:pause');
+      expect(button?.getAttribute('aria-label')).toBe('Ebenen-Schleife stoppen');
+      expect(button?.getAttribute('aria-pressed')).toBe('true');
+      expect(button?.classList.contains('is-active')).toBe(true);
+      expect(button?.querySelector('ha-icon')?.getAttribute('icon')).toBe('mdi:repeat');
 
       (card as unknown as { _loopPaused: boolean })._loopPaused = true;
       button = renderMap(card).querySelector('.loop-toggle-button');
-      expect(button?.getAttribute('aria-label')).toBe('Ebenen-Schleife abspielen');
-      expect(button?.getAttribute('aria-pressed')).toBe('true');
-      expect(button?.querySelector('ha-icon')?.getAttribute('icon')).toBe('mdi:play');
+      expect(button?.getAttribute('aria-label')).toBe('Ebenen-Schleife starten');
+      expect(button?.getAttribute('aria-pressed')).toBe('false');
+      expect(button?.classList.contains('is-active')).toBe(false);
+      expect(button?.querySelector('ha-icon')?.getAttribute('icon')).toBe('mdi:repeat-off');
     });
 
-    it('holds the current layer while paused and gives it a full delay again on play', () => {
+    it('holds the current layer while stopped and gives it a full delay again on start', () => {
       vi.useFakeTimers();
       const card = makeCard({ overlay_loop: ['wind', 'rain', 'temp'], overlay_loop_delay: 10 });
       card.connectedCallback();
@@ -1798,7 +1800,7 @@ describe('WindyCard', () => {
       update(card);
       expect(getIframeSrc(card)).toContain('overlay=rain');
 
-      // A reconnect (view change) must not restart a loop the user paused.
+      // A reconnect (view change) must not restart a loop the user stopped.
       card.disconnectedCallback();
       card.connectedCallback();
       vi.advanceTimersByTime(60000);
@@ -1817,7 +1819,7 @@ describe('WindyCard', () => {
       vi.useRealTimers();
     });
 
-    it('plays again when the loop itself is reconfigured', () => {
+    it('starts again when the loop itself is reconfigured', () => {
       const card = makeCard({ overlay_loop: ['wind', 'rain'] });
       update(card);
       (card as unknown as { _loopPaused: boolean })._loopPaused = true;

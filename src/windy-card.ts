@@ -876,19 +876,22 @@ export class WindyCard extends LitElement implements LovelaceCard {
         </button>`
       : '';
 
-    const loopLabel = this._loopPaused
-      ? (localize(this.hass, 'component.windy-card.card.play_loop') ?? 'Play layer loop')
-      : (localize(this.hass, 'component.windy-card.card.pause_loop') ?? 'Pause layer loop');
+    // The icon and highlight show the loop's state, not the action: a play triangle
+    // would be confused with Windy's own timeline play button inside the frame.
+    const loopRunning = !this._loopPaused;
+    const loopLabel = loopRunning
+      ? (localize(this.hass, 'component.windy-card.card.stop_loop') ?? 'Stop layer loop')
+      : (localize(this.hass, 'component.windy-card.card.start_loop') ?? 'Start layer loop');
     const loopButton =
       respectStaticLock && this._hasLoop
         ? html`<button
-            class="action-button loop-toggle-button ${this._loopPaused ? 'is-active' : ''}"
+            class="action-button loop-toggle-button ${loopRunning ? 'is-active' : ''}"
             @click=${this._toggleLoop}
             title="${loopLabel}"
             aria-label="${loopLabel}"
-            aria-pressed="${this._loopPaused}"
+            aria-pressed="${loopRunning}"
           >
-            <ha-icon icon="${this._loopPaused ? 'mdi:play' : 'mdi:pause'}" aria-hidden="true"></ha-icon>
+            <ha-icon icon="${loopRunning ? 'mdi:repeat' : 'mdi:repeat-off'}" aria-hidden="true"></ha-icon>
           </button>`
         : '';
 
